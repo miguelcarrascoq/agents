@@ -1,0 +1,23 @@
+[project]
+name = "openai-agents-feature-delivery"
+version = "0.1.0"
+description = "Feature delivery multi-agent pipeline with OpenAI Agents SDK"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "openai-agents>=0.2.0",
+  "python-dotenv>=1.0.0",
+  "ddgs>=9.0.0",
+  "openai>=1.0.0",
+  "feature-delivery-tui @ file:../shared/feature-delivery-tui",
+]
+
+[project.scripts]
+feature-delivery = "app.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

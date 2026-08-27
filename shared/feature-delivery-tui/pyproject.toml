@@ -1,0 +1,15 @@
+[project]
+name = "feature-delivery-tui"
+version = "0.2.0"
+description = "Interactive CLI wizard for feature-delivery agent labs"
+requires-python = ">=3.11"
+dependencies = [
+  "InquirerPy>=0.3.4",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["feature_delivery_tui*"]

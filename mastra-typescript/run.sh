@@ -8,6 +8,23 @@ SUPPORTS_QUIET="false"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
+# Prefer nvm Node >=20.6 (package engines); fall back to whatever is on PATH.
+ensure_node() {
+  if [[ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+    nvm use 20 >/dev/null 2>&1 || nvm use 22 >/dev/null 2>&1 || true
+  fi
+  local major
+  major="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)"
+  if (( major < 20 )); then
+    echo "Node >=20.6.0 required (found $(node -v 2>/dev/null || echo none))." >&2
+    echo "Install/use Node 20+: nvm install 20 && nvm use 20" >&2
+    exit 1
+  fi
+}
+ensure_node
+
 usage() {
   cat <<EOF
 Usage: ./run.sh [setup | --help | -h | --interactive | -i] ["<feature en español>"] [options]

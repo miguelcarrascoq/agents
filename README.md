@@ -53,7 +53,7 @@ Ver [COMPARISON.md](COMPARISON.md) para qué observar al comparar.
 - API key de **OpenAI** y/o **DeepSeek**
 - Búsqueda web: DuckDuckGo (sin API key extra)
 - Imágenes (illustrator): `OPENAI_API_KEY` aunque el LLM use DeepSeek
-- **Langflow lab only:** Docker + `LANGFLOW_API_KEY` (ver [langflow-python](langflow-python/))
+- **Langflow lab only:** Docker; `LANGFLOW_API_KEY` se genera en setup/server (ver [langflow-python](langflow-python/))
 
 ## Clone y setup
 

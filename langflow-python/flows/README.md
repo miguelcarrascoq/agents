@@ -16,11 +16,14 @@ Each JSON file is one **agent flow** (Researcher, Planner, …) exported/importe
 
 ## Setup flow IDs
 
-1. Start Langflow: `../run.sh server`
-2. Create API key in UI → Settings → API Keys → add to `.env` as `LANGFLOW_API_KEY`
-3. Upload flows: `../run.sh bootstrap-flows`
+1. Start Langflow: `../run.sh server` (waits for health; uploads flows if `flow_ids.json` is missing)
+2. Or force re-sync: `../run.sh bootstrap-flows`
 
 This writes `flow_ids.json` (gitignored) mapping agent names to Langflow flow UUIDs.
+
+`LANGFLOW_API_KEY` is set in `.env` (`LANGFLOW_API_KEY_SOURCE=env`); no UI API Keys step.
+
+Langflow DB/UI state persists under `data/langflow/`. Wipe with `rm -rf data/langflow flows/flow_ids.json` then `../run.sh server`.
 
 ## Edit in UI
 

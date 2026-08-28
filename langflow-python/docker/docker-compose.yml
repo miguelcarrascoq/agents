@@ -4,12 +4,18 @@ services:
     ports:
       - "7860:7860"
     volumes:
+      - ./data/langflow:/app/langflow
       - ./components:/app/custom_components
       - ./knowledge:/app/knowledge:ro
       - ./output:/app/output
       - ./flows:/app/flows:ro
     environment:
       LANGFLOW_COMPONENTS_PATH: /app/custom_components
+      LANGFLOW_CONFIG_DIR: /app/langflow
+      LANGFLOW_DATABASE_URL: sqlite:////app/langflow/langflow.db
+      LANGFLOW_API_KEY_SOURCE: ${LANGFLOW_API_KEY_SOURCE:-env}
+      LANGFLOW_API_KEY: ${LANGFLOW_API_KEY:-}
+      LANGFLOW_SECRET_KEY: ${LANGFLOW_SECRET_KEY:-}
       SANDBOX_OUTPUT_ROOT: /app/output
       SANDBOX_KNOWLEDGE_DIR: /app/knowledge
       LANGFLOW_SUPERUSER: ${LANGFLOW_SUPERUSER:-langflow}

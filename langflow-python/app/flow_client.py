@@ -30,8 +30,8 @@ class LangflowClient:
     def require_ready(self) -> None:
         if not self.api_key:
             raise ValueError(
-                "LANGFLOW_API_KEY is required. Generate one in Langflow UI → Settings → API Keys "
-                "and add it to .env"
+                "LANGFLOW_API_KEY is required. Run ./run.sh setup (or ./run.sh server) "
+                "to generate one in .env, or set LANGFLOW_API_KEY manually."
             )
         if not self.health_check():
             raise ValueError(

@@ -8,19 +8,19 @@ Pipeline multi-agente vía **Langflow UI + REST API**. Mismo contrato que los ot
 ## Requisitos extra (vs otros labs)
 
 - **Docker + Docker Compose** — servidor Langflow
-- **LANGFLOW_API_KEY** — Settings → API Keys en la UI
-- **flows/flow_ids.json** — generado por `./run.sh bootstrap-flows`
+- **LANGFLOW_API_KEY** — se genera en `./run.sh setup` / `server` (validación vía env; no hace falta la UI)
+- **flows/flow_ids.json** — lo crea `./run.sh server` en el primer arranque (o `bootstrap-flows`)
 - Puerto **7860** libre
 
 ## Setup
 
 ```bash
 ./run.sh setup
-cp .env.example .env   # OPENAI_API_KEY, LANGFLOW_SUPERUSER_PASSWORD, …
-./run.sh server          # http://localhost:7860
-# UI: Settings → API Keys → copiar a LANGFLOW_API_KEY en .env
-./run.sh bootstrap-flows # sube flows/*.json → flow_ids.json
+# Editar .env: OPENAI_API_KEY (y DEEPSEEK_API_KEY si aplica)
+./run.sh server          # up + health + bootstrap si falta flow_ids.json
 ```
+
+Datos de Langflow (DB, flows en UI) viven en `data/langflow/` y **persisten** entre `server-stop` / reinicios. Reset limpio: `./run.sh server-stop && rm -rf data/langflow flows/flow_ids.json`.
 
 **Importante:** Langflow 1.11+ exige `LANGFLOW_SUPERUSER_PASSWORD` en `.env` (si falta, el container crashea con `Username and password must be set`).
 
@@ -51,9 +51,9 @@ Flags: `--provider openai|deepseek`, `--model`, `--run-id`, `--agents`, `-i`
 
 | Comando | Acción |
 |---------|--------|
-| `./run.sh server` | Levantar Langflow |
-| `./run.sh server-stop` | Parar container |
-| `./run.sh bootstrap-flows` | Subir flows y generar `flow_ids.json` |
+| `./run.sh server` | Levantar Langflow, esperar health, bootstrap si hace falta |
+| `./run.sh server-stop` | Parar container (datos en `data/langflow/` se conservan) |
+| `./run.sh bootstrap-flows` | Re-subir flows y regenerar `flow_ids.json` |
 | `./run.sh generate-flows` | Regenerar `flows/*.json` desde código |
 
 ## Custom components

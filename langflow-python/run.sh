@@ -36,9 +36,11 @@ Examples:
 EOF
 }
 
-# Ensure KEY=VALUE exists in .env; generate openssl rand -hex 32 if missing/empty.
+# Ensure KEY=VALUE exists in .env; generate if missing/empty.
+# mode: hex (default) | fernet (32 url-safe base64 bytes for LANGFLOW_SECRET_KEY)
 ensure_env_secret() {
   local key="$1"
+  local mode="${2:-hex}"
   local val=""
   if [[ -f .env ]]; then
     val="$(grep -E "^${key}=" .env 2>/dev/null | tail -n1 | cut -d= -f2- || true)"
@@ -47,7 +49,12 @@ ensure_env_secret() {
     return 0
   fi
   local generated
-  generated="$(openssl rand -hex 32)"
+  if [[ "${mode}" == "fernet" ]]; then
+    # Fernet: 32 url-safe base64-encoded bytes (trailing =)
+    generated="$(python3 -c 'import base64,os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())')"
+  else
+    generated="$(openssl rand -hex 32)"
+  fi
   if grep -qE "^${key}=" .env 2>/dev/null; then
     # portable in-place edit without requiring GNU sed
     local tmp
@@ -67,6 +74,42 @@ ensure_env_secret() {
   echo "Generated ${key} in .env"
 }
 
+# Replace LANGFLOW_SECRET_KEY if empty or not a valid Fernet key.
+ensure_langflow_secret_key() {
+  local val=""
+  if [[ -f .env ]]; then
+    val="$(grep -E '^LANGFLOW_SECRET_KEY=' .env 2>/dev/null | tail -n1 | cut -d= -f2- || true)"
+  fi
+  if [[ -n "${val}" ]] && python3 -c "
+import base64, sys
+k = sys.argv[1].encode()
+try:
+    raw = base64.urlsafe_b64decode(k)
+except Exception:
+    raise SystemExit(1)
+raise SystemExit(0 if len(raw) == 32 else 1)
+" "${val}" 2>/dev/null; then
+    return 0
+  fi
+  # Clear invalid/empty value so ensure_env_secret regenerates as Fernet
+  if grep -qE '^LANGFLOW_SECRET_KEY=' .env 2>/dev/null; then
+    local tmp
+    tmp="$(mktemp)"
+    awk '
+      BEGIN { done=0 }
+      /^LANGFLOW_SECRET_KEY=/ {
+        if (!done) { print "LANGFLOW_SECRET_KEY="; done=1; next }
+      }
+      { print }
+      END { if (!done) print "LANGFLOW_SECRET_KEY=" }
+    ' .env >"$tmp"
+    mv "$tmp" .env
+  else
+    printf 'LANGFLOW_SECRET_KEY=\n' >>.env
+  fi
+  ensure_env_secret LANGFLOW_SECRET_KEY fernet
+}
+
 ensure_langflow_env_keys() {
   if [[ ! -f .env ]]; then
     echo "Missing .env. Run: ./run.sh setup" >&2
@@ -76,7 +119,7 @@ ensure_langflow_env_keys() {
     printf '\nLANGFLOW_API_KEY_SOURCE=env\n' >>.env
   fi
   ensure_env_secret LANGFLOW_API_KEY
-  ensure_env_secret LANGFLOW_SECRET_KEY
+  ensure_langflow_secret_key
 }
 
 cmd_setup() {

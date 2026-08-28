@@ -1,0 +1,22 @@
+services:
+  langflow:
+    image: langflowai/langflow:latest
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./components:/app/custom_components
+      - ./knowledge:/app/knowledge:ro
+      - ./output:/app/output
+      - ./flows:/app/flows:ro
+    environment:
+      LANGFLOW_COMPONENTS_PATH: /app/custom_components
+      SANDBOX_OUTPUT_ROOT: /app/output
+      SANDBOX_KNOWLEDGE_DIR: /app/knowledge
+      LANGFLOW_SUPERUSER: ${LANGFLOW_SUPERUSER:-langflow}
+      LANGFLOW_SUPERUSER_PASSWORD: ${LANGFLOW_SUPERUSER_PASSWORD:-changeme-dev}
+      LANGFLOW_AUTO_LOGIN: ${LANGFLOW_AUTO_LOGIN:-true}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -1,6 +1,6 @@
 # Feature Delivery Agent Labs
 
-Monorepo con **6 labs** que implementan el mismo pipeline multi-agente de desarrollo de software. Cada carpeta es un proyecto ejecutable e independiente; el código común vive en `shared/` y la base de conocimiento canónica en `knowledge-source/`.
+Monorepo con **7 labs** que implementan el mismo pipeline multi-agente de desarrollo de software. Cada carpeta es un proyecto ejecutable e independiente; el código común vive en `shared/` y la base de conocimiento canónica en `knowledge-source/`.
 
 ## Layout
 
@@ -42,6 +42,7 @@ python -m app "genera una imagen del presidente actual de chile" --agents resear
 | [openai-agents-python](openai-agents-python/) | Python + OpenAI Agents SDK | Sequential agents |
 | [langgraph-typescript](langgraph-typescript/) | TypeScript + LangGraph.js | Mismo grafo en TS |
 | [mastra-typescript](mastra-typescript/) | TypeScript + Mastra | Workflows/agents TS |
+| [langflow-python](langflow-python/) | Python + Langflow | UI visual + REST API, custom components |
 
 Ver [COMPARISON.md](COMPARISON.md) para qué observar al comparar.
 
@@ -52,6 +53,7 @@ Ver [COMPARISON.md](COMPARISON.md) para qué observar al comparar.
 - API key de **OpenAI** y/o **DeepSeek**
 - Búsqueda web: DuckDuckGo (sin API key extra)
 - Imágenes (illustrator): `OPENAI_API_KEY` aunque el LLM use DeepSeek
+- **Langflow lab only:** Docker + `LANGFLOW_API_KEY` (ver [langflow-python](langflow-python/))
 
 ## Clone y setup
 

@@ -1,6 +1,6 @@
 # Comparison guide
 
-Same feature-delivery pipeline in six frameworks. Use this checklist while you run the same Spanish prompt in each lab.
+Same feature-delivery pipeline in seven frameworks. Use this checklist while you run the same Spanish prompt in each lab.
 
 ## Mental models
 
@@ -12,6 +12,7 @@ Same feature-delivery pipeline in six frameworks. Use this checklist while you r
 | openai-agents-python | Agents + handoffs | Delegation primitives; OpenAI-native DX |
 | langgraph-typescript | Same graph idea in JS/TS | Language ergonomics vs langgraph-python |
 | mastra-typescript | Agents + workflow steps | TS-native workflows, typed steps |
+| langflow-python | 7 agent flows in UI + Python REST orchestrator | Visual editing, custom components, API-first deployment |
 
 ## Shared contract
 
@@ -36,6 +37,14 @@ Same interface in every project folder:
 | `./run.sh` | Interactive wizard (pick agents, provider, etc.; Esc cancels) |
 | `./run.sh --help` | Show flags and examples |
 | `./run.sh "feature..." [flags]` | Direct pipeline run |
+
+**langflow-python only:**
+
+| Command | Action |
+|---------|--------|
+| `./run.sh server` | Start Langflow Docker (UI at :7860) |
+| `./run.sh bootstrap-flows` | Upload flows + write `flows/flow_ids.json` |
+| `./run.sh generate-flows` | Regenerate `flows/*.json` templates |
 
 ## Understanding output
 

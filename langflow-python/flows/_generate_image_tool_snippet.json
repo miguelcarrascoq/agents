@@ -1,0 +1,225 @@
+{
+  "node": {
+    "data": {
+      "id": "GenerateImageTool-Sbx01",
+      "node": {
+        "template": {
+          "_type": "Component",
+          "code": {
+            "type": "code",
+            "required": true,
+            "placeholder": "",
+            "list": false,
+            "show": true,
+            "multiline": true,
+            "value": "\"\"\"Langflow custom component: Generate Image.\"\"\"\n\nfrom lfx.custom import Component\nfrom lfx.io import IntInput, MessageTextInput, Output, StrInput\nfrom lfx.schema.message import Message\n\nfrom __future__ import annotations\n\nimport base64\nimport os\nimport re\nfrom pathlib import Path\n\n\ndef output_root() -> Path:\n    return Path(os.getenv(\"SANDBOX_OUTPUT_ROOT\", \"/app/output\"))\n\n\ndef knowledge_dir() -> Path:\n    return Path(os.getenv(\"SANDBOX_KNOWLEDGE_DIR\", \"/app/knowledge\"))\n\n\nclass SandboxCore:\n    def __init__(self, run_id: str) -> None:\n        self.run_id = run_id.strip()\n        if not self.run_id:\n            raise ValueError(\"run_id is required\")\n        self.root = (output_root() / self.run_id).resolve()\n        self.knowledge = knowledge_dir()\n        self.root.mkdir(parents=True, exist_ok=True)\n        (self.root / \"src\").mkdir(exist_ok=True)\n        (self.root / \"diagrams\").mkdir(exist_ok=True)\n        (self.root / \"assets\").mkdir(exist_ok=True)\n\n    def _safe_path(self, relative: str) -> Path:\n        relative = relative.lstrip(\"/\").replace(\"\\\\\", \"/\")\n        if \"..\" in Path(relative).parts:\n            raise ValueError(\"Path traversal is not allowed\")\n        path = (self.root / relative).resolve()\n        if not str(path).startswith(str(self.root.resolve())):\n            raise ValueError(\"Path escapes sandbox\")\n        return path\n\n    def write_file(self, path: str, content: str) -> str:\n        target = self._safe_path(path)\n        target.parent.mkdir(parents=True, exist_ok=True)\n        target.write_text(content, encoding=\"utf-8\")\n        return f\"Wrote {path} ({len(content)} chars)\"\n\n    def read_file(self, path: str) -> str:\n        target = self._safe_path(path)\n        if not target.exists():\n            return f\"ERROR: file not found: {path}\"\n        return target.read_text(encoding=\"utf-8\")\n\n    def list_files(self, prefix: str = \"\") -> str:\n        base = self._safe_path(prefix) if prefix else self.root\n        if not base.exists():\n            return \"(empty)\"\n        files = [str(p.relative_to(self.root)) for p in sorted(base.rglob(\"*\")) if p.is_file()]\n        return \"\\n\".join(files) if files else \"(empty)\"\n\n    def search_knowledge(self, query: str, limit: int = 3) -> str:\n        tokens = [t for t in re.split(r\"\\W+\", query.lower()) if len(t) > 2]\n        scored: list[tuple[int, Path, str]] = []\n        for path in self.knowledge.glob(\"*.md\"):\n            text = path.read_text(encoding=\"utf-8\")\n            lower = text.lower()\n            score = sum(lower.count(tok) for tok in tokens) if tokens else 1\n            if score > 0:\n                scored.append((score, path, text))\n        scored.sort(key=lambda x: x[0], reverse=True)\n        if not scored:\n            return \"No knowledge matches.\"\n        chunks = [f\"### {path.name} (score={score})\\n{text[:2500]}\" for score, path, text in scored[:limit]]\n        return \"\\n\\n\".join(chunks)\n\n    def web_search(self, query: str, limit: int = 5) -> str:\n        try:\n            try:\n                from ddgs import DDGS\n            except ImportError:\n                from duckduckgo_search import DDGS  # noqa: F401\n\n            with DDGS() as ddgs:\n                results = list(ddgs.text(query, max_results=limit))\n            if not results:\n                return \"No web results found.\"\n            chunks = []\n            for item in results:\n                title = item.get(\"title\", \"No title\")\n                href = item.get(\"href\", \"\")\n                body = (item.get(\"body\") or \"\")[:500]\n                chunks.append(f\"- **{title}**\\n  {href}\\n  {body}\")\n            return \"\\n\\n\".join(chunks)\n        except Exception as exc:\n            return f\"Web search unavailable: {exc}. Use search_knowledge as fallback.\"\n\n    def write_mermaid(self, path: str, content: str) -> str:\n        if not content.strip():\n            raise ValueError(\"Mermaid content cannot be empty\")\n        rel = path.lstrip(\"/\").replace(\"\\\\\", \"/\")\n        if not rel.endswith(\".mmd\"):\n            rel = f\"{rel}.mmd\"\n        if not rel.startswith(\"diagrams/\"):\n            rel = f\"diagrams/{rel.lstrip('/')}\"\n        cleaned = content.strip()\n        if cleaned.startswith(\"```\"):\n            cleaned = re.sub(r\"^```(?:mermaid)?\\s*\", \"\", cleaned)\n            cleaned = re.sub(r\"\\s*```$\", \"\", cleaned)\n        return self.write_file(rel, cleaned + \"\\n\")\n\n    def generate_image(self, prompt: str, path: str) -> str:\n        api_key = os.environ.get(\"OPENAI_API_KEY\", \"\").strip()\n        if not api_key:\n            return \"ERROR: OPENAI_API_KEY required for generate_image.\"\n        rel = path.lstrip(\"/\").replace(\"\\\\\", \"/\")\n        if not rel.startswith(\"assets/\"):\n            rel = f\"assets/{rel.lstrip('/')}\"\n        if not rel.lower().endswith(\".png\"):\n            rel = f\"{rel}.png\"\n        try:\n            from openai import OpenAI\n\n            client = OpenAI(api_key=api_key)\n            response = client.images.generate(model=\"gpt-image-1\", prompt=prompt, size=\"1024x1024\", n=1)\n            item = response.data[0]\n            if getattr(item, \"b64_json\", None):\n                image_data = base64.b64decode(item.b64_json)\n            elif getattr(item, \"url\", None):\n                import urllib.request\n\n                with urllib.request.urlopen(item.url) as resp:\n                    image_data = resp.read()\n            else:\n                return \"ERROR generating image: empty response\"\n            target = self._safe_path(rel)\n            target.parent.mkdir(parents=True, exist_ok=True)\n            target.write_bytes(image_data)\n            return f\"Generated image at {rel}\"\n        except Exception as exc:\n            return f\"ERROR generating image: {exc}\"\n\n\nclass GenerateImageTool(Component):\n    display_name = \"Generate Image\"\n    description = \"Feature-delivery sandbox tool.\"\n    icon = \"image\"\n    name = \"GenerateImageTool\"\n\n    inputs = [\n        StrInput(name=\"run_id\", display_name=\"Run ID\", info=\"Sandbox run identifier.\"),\n        MessageTextInput(name=\"prompt\", display_name=\"Prompt\", tool_mode=True),\n        StrInput(name=\"path\", display_name=\"Path\", tool_mode=True),\n    ]\n    outputs = [\n        Output(display_name=\"Tool\", name=\"component_as_tool\", method=\"to_toolkit\"),\n        Output(display_name=\"Result\", name=\"result\", method=\"run\"),\n    ]\n\n    def run(self) -> Message:\n        text = SandboxCore(self.run_id).generate_image(self.prompt, self.path)\n        return Message(text=text)\n",
+            "fileTypes": [],
+            "file_path": "",
+            "password": false,
+            "name": "code",
+            "advanced": true,
+            "api_editable": false,
+            "dynamic": true,
+            "info": "",
+            "load_from_db": false,
+            "title_case": false
+          },
+          "path": {
+            "tool_mode": true,
+            "trace_as_metadata": true,
+            "load_from_db": false,
+            "list": false,
+            "list_add_label": "Add More",
+            "override_skip": false,
+            "required": false,
+            "placeholder": "",
+            "show": true,
+            "name": "path",
+            "value": "assets/image_1.png",
+            "display_name": "Path",
+            "advanced": false,
+            "api_editable": false,
+            "dynamic": false,
+            "info": "",
+            "title_case": false,
+            "track_in_telemetry": false,
+            "type": "str",
+            "_input_type": "StrInput"
+          },
+          "prompt": {
+            "tool_mode": true,
+            "trace_as_input": true,
+            "trace_as_metadata": true,
+            "load_from_db": false,
+            "list": false,
+            "list_add_label": "Add More",
+            "override_skip": false,
+            "required": false,
+            "placeholder": "",
+            "show": true,
+            "name": "prompt",
+            "value": "",
+            "display_name": "Prompt",
+            "advanced": false,
+            "api_editable": false,
+            "input_types": [
+              "Message"
+            ],
+            "dynamic": false,
+            "info": "",
+            "title_case": false,
+            "track_in_telemetry": false,
+            "type": "str",
+            "_input_type": "MessageTextInput"
+          },
+          "run_id": {
+            "tool_mode": false,
+            "trace_as_metadata": true,
+            "load_from_db": false,
+            "list": false,
+            "list_add_label": "Add More",
+            "override_skip": false,
+            "required": false,
+            "placeholder": "",
+            "show": true,
+            "name": "run_id",
+            "value": "playground",
+            "display_name": "Run ID",
+            "advanced": false,
+            "api_editable": false,
+            "dynamic": false,
+            "info": "Sandbox run identifier.",
+            "title_case": false,
+            "track_in_telemetry": false,
+            "type": "str",
+            "_input_type": "StrInput"
+          }
+        },
+        "description": "Feature-delivery sandbox tool.",
+        "icon": "image",
+        "base_classes": [
+          "Message",
+          "Tool"
+        ],
+        "display_name": "Generate Image",
+        "documentation": "",
+        "minimized": false,
+        "custom_fields": {},
+        "output_types": [],
+        "pinned": false,
+        "conditional_paths": [],
+        "frozen": false,
+        "outputs": [
+          {
+            "types": [
+              "Tool"
+            ],
+            "selected": "Tool",
+            "name": "component_as_tool",
+            "display_name": "Tool",
+            "method": "to_toolkit",
+            "value": "__UNDEFINED__",
+            "cache": true,
+            "allows_loop": false,
+            "group_outputs": false,
+            "tool_mode": true
+          },
+          {
+            "types": [
+              "Message"
+            ],
+            "selected": "Message",
+            "name": "result",
+            "display_name": "Result",
+            "method": "run",
+            "value": "__UNDEFINED__",
+            "cache": true,
+            "allows_loop": false,
+            "group_outputs": false,
+            "tool_mode": true
+          }
+        ],
+        "field_order": [
+          "run_id",
+          "prompt",
+          "path"
+        ],
+        "beta": false,
+        "legacy": false,
+        "edited": false,
+        "metadata": {
+          "module": "custom_components.generate_image",
+          "code_hash": "3dec8861a9e0",
+          "dependencies": {
+            "total_dependencies": 4,
+            "dependencies": [
+              {
+                "name": "lfx",
+                "version": "1.11.5"
+              },
+              {
+                "name": "ddgs",
+                "version": "9.14.4"
+              },
+              {
+                "name": "duckduckgo_search",
+                "version": null
+              },
+              {
+                "name": "openai",
+                "version": "2.48.0"
+              }
+            ]
+          }
+        },
+        "tool_mode": false
+      },
+      "type": "GenerateImageTool"
+    },
+    "dragging": false,
+    "id": "GenerateImageTool-Sbx01",
+    "measured": {
+      "height": 211,
+      "width": 320
+    },
+    "position": {
+      "x": 900,
+      "y": 200
+    },
+    "positionAbsolute": {
+      "x": 1233.166256931297,
+      "y": 514.7544001650839
+    },
+    "selected": false,
+    "type": "genericNode"
+  },
+  "edge": {
+    "animated": false,
+    "className": "",
+    "data": {
+      "sourceHandle": {
+        "dataType": "GenerateImageTool",
+        "id": "GenerateImageTool-Sbx01",
+        "name": "component_as_tool",
+        "output_types": [
+          "Tool"
+        ]
+      },
+      "targetHandle": {
+        "fieldName": "tools",
+        "id": "Agent-EXpSZ",
+        "inputTypes": [
+          "Tool"
+        ],
+        "type": "other"
+      }
+    },
+    "id": "reactflow__edge-GenerateImageTool-Sbx01{œdataTypeœ:œGenerateImageToolœ,œidœ:œGenerateImageTool-Sbx01œ,œnameœ:œcomponent_as_toolœ,œoutput_typesœ:[œToolœ]}-Agent-EXpSZ{œfieldNameœ:œtoolsœ,œidœ:œAgent-EXpSZœ,œinputTypesœ:[œToolœ],œtypeœ:œotherœ}",
+    "selected": false,
+    "source": "GenerateImageTool-Sbx01",
+    "sourceHandle": "{œdataTypeœ: œGenerateImageToolœ, œidœ: œGenerateImageTool-Sbx01œ, œnameœ: œcomponent_as_toolœ, œoutput_typesœ: [œToolœ]}",
+    "target": "Agent-EXpSZ",
+    "targetHandle": "{œfieldNameœ: œtoolsœ, œidœ: œAgent-EXpSZœ, œinputTypesœ: [œToolœ], œtypeœ: œotherœ}"
+  },
+  "node_id": "GenerateImageTool-Sbx01"
+}

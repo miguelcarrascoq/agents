@@ -1,0 +1,41 @@
+{
+  "researcher": {
+    "file": "researcher.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {
+      "web_search": "UnifiedWebSearch-KZ8k6"
+    }
+  },
+  "planner": {
+    "file": "planner.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {}
+  },
+  "designer": {
+    "file": "designer.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {}
+  },
+  "diagrammer": {
+    "file": "diagrammer.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {}
+  },
+  "illustrator": {
+    "file": "illustrator.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {
+      "generate_image": "GenerateImageTool-Sbx01"
+    }
+  },
+  "coder": {
+    "file": "coder.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {}
+  },
+  "reviewer": {
+    "file": "reviewer.json",
+    "agent_node_id": "Agent-EXpSZ",
+    "tool_node_ids": {}
+  }
+}

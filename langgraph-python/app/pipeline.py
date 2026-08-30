@@ -59,6 +59,66 @@ def _call(llm, system: str, user: str) -> str:
     return str(msg.content)
 
 
+_VERDICT_RE = re.compile(
+    r"\b(approve|request_changes|comment)\b",
+    re.IGNORECASE,
+)
+
+
+def _ends_on_bare_heading(text: str) -> bool:
+    """True when the last non-empty line is a markdown heading with no body after it."""
+    lines = [ln.rstrip() for ln in text.strip().splitlines() if ln.strip()]
+    if not lines:
+        return True
+    return bool(re.match(r"^#{1,6}\s+\S", lines[-1]))
+
+
+def _review_incomplete(text: str) -> bool:
+    if not (text or "").strip():
+        return True
+    if not _VERDICT_RE.search(text):
+        return True
+    if _ends_on_bare_heading(text):
+        return True
+    return False
+
+
+def _plan_incomplete(text: str) -> bool:
+    if not (text or "").strip():
+        return True
+    if _ends_on_bare_heading(text):
+        return True
+    # Planner prompt asks for riesgos + fuera de alcance; bare section titles count as truncated.
+    for section in ("riesgos", "fuera de alcance"):
+        match = re.search(rf"^#{1,6}\s+.*{section}.*$", text, re.IGNORECASE | re.MULTILINE)
+        if not match:
+            continue
+        after = text[match.end() :].lstrip()
+        if not after or after.startswith("#"):
+            return True
+    return False
+
+
+def _complete_truncated(
+    llm,
+    *,
+    system: str,
+    draft: str,
+    artifact_name: str,
+) -> str:
+    continuation = _call(
+        llm,
+        system,
+        (
+            f"El borrador de {artifact_name} quedó incompleto (cortado a mitad de sección). "
+            "Reescribe el documento completo en markdown, partiendo del borrador. "
+            "No dejes headings vacíos; termina todas las secciones pedidas.\n\n"
+            f"Borrador:\n{draft}"
+        ),
+    )
+    return continuation.strip() or draft
+
+
 def _strip_mermaid_fences(text: str) -> str:
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -105,13 +165,23 @@ def build_node_handlers(sandbox: Sandbox, provider: str | None = None, model: st
         research = state.get("research") or sandbox.read_file("research.md")
         if research.startswith("ERROR"):
             research = ""
-        plan = _call(
-            llm,
+        planner_system = (
             SPANISH_SYSTEM
             + " Eres el Planner. Produce un plan de entrega en markdown con: "
-            "contexto, criterios de aceptación, tareas ordenadas, riesgos y fuera de alcance.",
+            "contexto, criterios de aceptación, tareas ordenadas, riesgos y fuera de alcance."
+        )
+        plan = _call(
+            llm,
+            planner_system,
             f"Feature request:\n{state['request']}\n\nResearch:\n{research}\n\nKnowledge:\n{knowledge}",
         )
+        if _plan_incomplete(plan):
+            plan = _complete_truncated(
+                llm,
+                system=planner_system,
+                draft=plan,
+                artifact_name="plan.md",
+            )
         sandbox.write_file("plan.md", plan)
         return {"plan": plan}
 
@@ -209,20 +279,30 @@ def build_node_handlers(sandbox: Sandbox, provider: str | None = None, model: st
         for rel in state.get("files") or []:
             file_blobs.append(f"----- {rel} -----\n{sandbox.read_file(rel)}")
         checklist = sandbox.search_knowledge("code review checklist seguridad")
-        review = _call(
-            llm,
+        reviewer_system = (
             SPANISH_SYSTEM
             + " Eres el Reviewer. Escribe review.md en markdown con: hallazgos "
-            "(severity/media/baja), gaps vs criterios de aceptación, y veredicto "
+            "(alta/media/baja), gaps vs criterios de aceptación, y veredicto "
             "`approve` | `request_changes` | `comment`. "
             "Si el veredicto es request_changes, incluye una sección "
-            "## Notas para el coder con cambios concretos.",
+            "## Notas para el coder con cambios concretos."
+        )
+        review = _call(
+            llm,
+            reviewer_system,
             (
                 f"Request:\n{state['request']}\n\nPlan:\n{state['plan']}\n\n"
                 f"Design:\n{state['design']}\n\nFiles:\n{listing}\n\n"
                 f"Code:\n{chr(10).join(file_blobs)}\n\nChecklist:\n{checklist}"
             ),
         )
+        if _review_incomplete(review):
+            review = _complete_truncated(
+                llm,
+                system=reviewer_system,
+                draft=review,
+                artifact_name="review.md",
+            )
         sandbox.write_file("review.md", review)
         notes = ""
         if "request_changes" in review.lower():

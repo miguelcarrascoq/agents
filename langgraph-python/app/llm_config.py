@@ -67,6 +67,9 @@ def resolve_llm_settings(
     )
 
 
+DEFAULT_MAX_TOKENS = 8192
+
+
 def build_chat_openai(settings: LLMSettings | None = None, **kwargs):
     """Build a LangChain ChatOpenAI client for OpenAI, DeepSeek, or OpenRouter."""
     from langchain_openai import ChatOpenAI
@@ -76,6 +79,7 @@ def build_chat_openai(settings: LLMSettings | None = None, **kwargs):
         "model": settings.model,
         "api_key": settings.api_key,
         "temperature": kwargs.pop("temperature", 0.2),
+        "max_tokens": kwargs.pop("max_tokens", DEFAULT_MAX_TOKENS),
         **kwargs,
     }
     if settings.base_url:

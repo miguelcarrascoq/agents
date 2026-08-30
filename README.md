@@ -64,6 +64,8 @@ cd agents
 
 Copia `.env.example` → `.env` en el lab que vayas a usar (o deja que `./run.sh setup` lo haga).
 
+**Secretos:** API keys y passwords van solo en `.env` local (gitignored). Nunca los commitees ni subas un zip del working tree. Los defaults de Langflow (`changeme-dev`, `AUTO_LOGIN=true`) son solo para lab local, no para un server expuesto.
+
 ```bash
 cd langgraph-python
 ./run.sh setup          # venv + pip install + .env

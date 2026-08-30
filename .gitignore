@@ -2,8 +2,19 @@
 **/.venv/
 **/node_modules/
 **/output/
-**/.env
+**/data/
 **/dist/
 **/build/
 **/__pycache__/
 **/*.egg-info/
+
+# Secrets / env (keep *.example tracked)
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+*.pem
+**/credentials.json
+**/*service-account*.json
+**/secret_key

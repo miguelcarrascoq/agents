@@ -7,6 +7,7 @@ import {
 } from "./callPreview";
 import { FileViewer } from "./FileViewer";
 import { MarkdownArtifact } from "./MarkdownArtifact";
+import { PathTree } from "./PathTree";
 import { renderMarkdown } from "./markdown";
 import {
   defaultModelFor,
@@ -601,25 +602,11 @@ export default function App() {
                   list.length > 0 && (
                     <div key={key} className="path-list">
                       <h3>{key}</h3>
-                      <ul>
-                        {list.map((p) => (
-                          <li key={p} className="mono">
-                            <button
-                              type="button"
-                              className={
-                                selectedFile === p
-                                  ? "path-link active"
-                                  : "path-link"
-                              }
-                              onClick={() =>
-                                void openRunFile(result.run_id, p)
-                              }
-                            >
-                              {p}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                      <PathTree
+                        paths={list}
+                        selected={selectedFile}
+                        onOpen={(p) => void openRunFile(result.run_id, p)}
+                      />
                     </div>
                   ),
               )}

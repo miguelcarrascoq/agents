@@ -156,3 +156,7 @@ export function assetUrl(runId: string, relPath: string): string {
     .join("/");
   return `/runs/${encodeURIComponent(runId)}/files/${encoded}`;
 }
+
+export function zipUrl(runId: string): string {
+  return `/runs/${encodeURIComponent(runId)}/zip`;
+}

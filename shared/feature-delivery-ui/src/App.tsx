@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { assetUrl, createRun, fetchHealth, type PhaseEvent } from "./api";
+import { assetUrl, createRun, fetchHealth, zipUrl, type PhaseEvent } from "./api";
 import {
   buildApiPreview,
   buildCliPreview,
   highlightCallPreview,
 } from "./callPreview";
+import { FileViewer } from "./FileViewer";
 import { MarkdownArtifact } from "./MarkdownArtifact";
 import { renderMarkdown } from "./markdown";
 import {
@@ -59,6 +60,10 @@ export default function App() {
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
   const [callMethod, setCallMethod] = useState<"cli" | "api">("cli");
   const [copied, setCopied] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [fileText, setFileText] = useState<string | null>(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const runActive = loading || !!result;
 
@@ -172,6 +177,9 @@ export default function App() {
     setError(null);
     setResult(null);
     setPhases([]);
+    setSelectedFile(null);
+    setFileText(null);
+    setFileError(null);
     setParamsCollapsed(true);
     try {
       const data = await createRun(
@@ -189,6 +197,24 @@ export default function App() {
       setParamsCollapsed(false);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function openRunFile(runId: string, relPath: string) {
+    setSelectedFile(relPath);
+    setFileLoading(true);
+    setFileError(null);
+    setFileText(null);
+    try {
+      const res = await fetch(assetUrl(runId, relPath));
+      if (!res.ok) {
+        throw new Error(`No se pudo cargar (${res.status})`);
+      }
+      setFileText(await res.text());
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setFileLoading(false);
     }
   }
 
@@ -536,6 +562,15 @@ export default function App() {
                     <dd className="mono small">{result.output_dir}</dd>
                   </div>
                 )}
+                <div className="meta-actions">
+                  <a
+                    className="zip-download"
+                    href={zipUrl(result.run_id)}
+                    download={`${result.run_id}.zip`}
+                  >
+                    Descargar ZIP
+                  </a>
+                </div>
               </dl>
 
               {(
@@ -569,12 +604,45 @@ export default function App() {
                       <ul>
                         {list.map((p) => (
                           <li key={p} className="mono">
-                            {p}
+                            <button
+                              type="button"
+                              className={
+                                selectedFile === p
+                                  ? "path-link active"
+                                  : "path-link"
+                              }
+                              onClick={() =>
+                                void openRunFile(result.run_id, p)
+                              }
+                            >
+                              {p}
+                            </button>
                           </li>
                         ))}
                       </ul>
                     </div>
                   ),
+              )}
+
+              {(fileLoading || fileError || (selectedFile && fileText !== null)) && (
+                <div className="file-preview">
+                  {fileLoading && (
+                    <p className="file-preview-status">Cargando archivo…</p>
+                  )}
+                  {fileError && (
+                    <p className="file-preview-error">{fileError}</p>
+                  )}
+                  {!fileLoading &&
+                    !fileError &&
+                    selectedFile &&
+                    fileText !== null && (
+                      <FileViewer
+                        path={selectedFile}
+                        text={fileText}
+                        rawUrl={assetUrl(result.run_id, selectedFile)}
+                      />
+                    )}
+                </div>
               )}
 
               {result.assets && result.assets.length > 0 && (

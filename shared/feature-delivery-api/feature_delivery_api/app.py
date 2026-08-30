@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import mimetypes
 import os
 import queue
 import threading
+import zipfile
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -105,12 +107,17 @@ def _wants_sse(request: Request) -> bool:
     return "text/event-stream" in accept
 
 
-def _safe_run_file(output_root: Path, run_id: str, file_path: str) -> Path:
+def _safe_run_root(output_root: Path, run_id: str) -> Path:
     if not run_id or ".." in run_id or "/" in run_id or "\\" in run_id:
         raise HTTPException(status_code=400, detail="Invalid run_id")
     root = (output_root / run_id).resolve()
     if not root.is_dir():
         raise HTTPException(status_code=404, detail="Run output not found")
+    return root
+
+
+def _safe_run_file(output_root: Path, run_id: str, file_path: str) -> Path:
+    root = _safe_run_root(output_root, run_id)
     target = (root / file_path).resolve()
     try:
         target.relative_to(root)
@@ -119,6 +126,15 @@ def _safe_run_file(output_root: Path, run_id: str, file_path: str) -> Path:
     if not target.is_file():
         raise HTTPException(status_code=404, detail="File not found")
     return target
+
+
+def _zip_run_directory(root: Path) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(root.rglob("*")):
+            if path.is_file():
+                zf.write(path, arcname=path.relative_to(root).as_posix())
+    return buf.getvalue()
 
 
 def create_app(
@@ -155,6 +171,18 @@ def create_app(
         target = _safe_run_file(resolved_output, run_id, file_path)
         media_type, _ = mimetypes.guess_type(str(target))
         return FileResponse(target, media_type=media_type or "application/octet-stream")
+
+    @app.get("/runs/{run_id}/zip")
+    def get_run_zip(run_id: str) -> Response:
+        root = _safe_run_root(resolved_output, run_id)
+        payload = _zip_run_directory(root)
+        return Response(
+            content=payload,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{run_id}.zip"',
+            },
+        )
 
     @app.post("/runs")
     def create_run(body: RunRequest, request: Request) -> Any:

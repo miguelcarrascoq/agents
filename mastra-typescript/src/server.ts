@@ -14,6 +14,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
 import { resolveUiDist } from "../../shared/feature-delivery-ui/resolve-ui-dist.mjs";
+import { zipRunDirectory } from "../../shared/zip-run-dir.mjs";
 import { runWithPhaseListener } from "./phaseLog.js";
 import { OUTPUT_DIR, runFeatureDelivery } from "./pipeline.js";
 
@@ -53,7 +54,7 @@ function sseChunk(event: string, data: unknown): Uint8Array {
   );
 }
 
-function resolveRunFile(runId: string, relPath: string): string {
+function resolveRunRoot(runId: string): string {
   if (!runId || runId.includes("..") || runId.includes("/") || runId.includes("\\")) {
     throw new HTTPException(400, { message: "Invalid run_id" });
   }
@@ -61,6 +62,11 @@ function resolveRunFile(runId: string, relPath: string): string {
   if (!existsSync(root) || !statSync(root).isDirectory()) {
     throw new HTTPException(404, { message: "Run output not found" });
   }
+  return root;
+}
+
+function resolveRunFile(runId: string, relPath: string): string {
+  const root = resolveRunRoot(runId);
   const target = path.resolve(root, relPath);
   const rel = path.relative(root, target);
   if (rel.startsWith("..") || path.isAbsolute(rel)) {
@@ -192,8 +198,18 @@ app.get("/runs/:runId/files/*", (c) => {
   const prefix = `/runs/${runId}/files/`;
   const relPath = decodeURIComponent(c.req.path.slice(prefix.length));
   const target = resolveRunFile(runId, relPath);
-  const body = readFileSync(target);
+  const body = new Uint8Array(readFileSync(target));
   return c.body(body, 200, { "Content-Type": guessMime(target) });
+});
+
+app.get("/runs/:runId/zip", (c) => {
+  const runId = c.req.param("runId");
+  const root = resolveRunRoot(runId);
+  const body = new Uint8Array(zipRunDirectory(root));
+  return c.body(body, 200, {
+    "Content-Type": "application/zip",
+    "Content-Disposition": `attachment; filename="${runId}.zip"`,
+  });
 });
 
 app.post("/runs", async (c) => {

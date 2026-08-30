@@ -1,4 +1,5 @@
 import { marked, type Tokens } from "marked";
+import { highlightSource } from "./highlight";
 
 marked.setOptions({ gfm: true, breaks: true });
 
@@ -18,7 +19,9 @@ marked.use({
         const body = escaped ? text : escapeHtml(text);
         return `<div class="mermaid">${body}</div>\n`;
       }
-      return false as unknown as string;
+      const { html, language: detected } = highlightSource(text, language);
+      const cls = detected ? `hljs language-${detected}` : "hljs";
+      return `<pre class="code-block"><code class="${cls}">${html}</code></pre>\n`;
     },
   },
 });

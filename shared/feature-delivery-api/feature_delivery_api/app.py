@@ -43,16 +43,30 @@ class RunRequest(BaseModel):
 
 
 def _ui_dist_dir() -> Path | None:
-    """Resolve shared/feature-delivery-ui/dist if the UI has been built."""
-    # feature_delivery_api/app.py → shared/feature-delivery-ui/dist
-    candidate = Path(__file__).resolve().parents[2] / "feature-delivery-ui" / "dist"
-    if (candidate / "index.html").is_file():
-        return candidate
+    """Resolve shared/feature-delivery-ui/dist if the UI has been built.
+
+    Tries, in order:
+    1. ``FEATURE_DELIVERY_UI_DIST`` (Docker / explicit override)
+    2. Sibling of an editable ``feature-delivery-api`` checkout
+       (``…/shared/feature-delivery-ui/dist``)
+    3. Image layout ``/workspace/shared/feature-delivery-ui/dist``
+    4. ``../shared/feature-delivery-ui/dist`` from the lab working directory
+    """
+    candidates: list[Path] = []
     env = os.environ.get("FEATURE_DELIVERY_UI_DIST")
     if env:
-        path = Path(env)
-        if (path / "index.html").is_file():
-            return path
+        candidates.append(Path(env))
+    # Editable install: …/shared/feature-delivery-api/feature_delivery_api/app.py
+    candidates.append(
+        Path(__file__).resolve().parents[2] / "feature-delivery-ui" / "dist"
+    )
+    candidates.append(Path("/workspace/shared/feature-delivery-ui/dist"))
+    candidates.append(Path.cwd() / ".." / "shared" / "feature-delivery-ui" / "dist")
+
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if (resolved / "index.html").is_file():
+            return resolved
     return None
 
 

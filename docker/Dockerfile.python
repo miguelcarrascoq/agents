@@ -18,6 +18,7 @@ ARG LAB=langgraph-python
 ENV LAB=${LAB} \
   HOST=0.0.0.0 \
   PORT=8000 \
+  FEATURE_DELIVERY_UI_DIST=/workspace/shared/feature-delivery-ui/dist \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1
 

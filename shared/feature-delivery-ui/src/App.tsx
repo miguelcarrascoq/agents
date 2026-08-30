@@ -1,6 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { assetUrl, createRun, fetchHealth, type PhaseEvent } from "./api";
-import { buildApiPreview, buildCliPreview } from "./callPreview";
+import {
+  buildApiPreview,
+  buildCliPreview,
+  highlightCallPreview,
+} from "./callPreview";
 import { MarkdownArtifact } from "./MarkdownArtifact";
 import { renderMarkdown } from "./markdown";
 import {
@@ -456,21 +460,20 @@ export default function App() {
               </button>
             </div>
             <pre className="call-preview mono" tabIndex={0}>
-              {callPreview}
+              {highlightCallPreview(callPreview)}
             </pre>
           </aside>
         )}
         </div>
 
-        <aside className={`results ${result || loading ? "show" : ""}`}>
+        {runActive && (
+        <aside className="results show">
           <div className="section-head">
             <h2>Resultado</h2>
             <p>
               {loading
                 ? "El pipeline puede tardar varios minutos…"
-                : result
-                  ? "Resumen del run"
-                  : "Aquí aparecerá la respuesta de POST /runs"}
+                : "Resumen del run"}
             </p>
           </div>
 
@@ -600,6 +603,7 @@ export default function App() {
             </div>
           )}
         </aside>
+        )}
       </div>
 
       {templatesOpen && (

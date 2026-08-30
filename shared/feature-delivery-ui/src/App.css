@@ -342,13 +342,6 @@
   min-width: 0;
 }
 
-@media (min-width: 900px) {
-  .main-grid:not(.run-active) {
-    grid-template-columns: 1.05fr 0.95fr;
-    align-items: start;
-  }
-}
-
 .main-grid.run-active {
   grid-template-columns: 1fr;
 }
@@ -381,17 +374,44 @@
 
 .call-preview {
   margin: 0.35rem 0 0;
-  padding: 0.85rem 1rem;
-  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--ink) 7%, var(--surface-solid));
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  color: var(--ink-soft);
   font-size: 0.78rem;
-  line-height: 1.45;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-x: auto;
-  max-height: 16rem;
+  max-height: 20rem;
   overflow-y: auto;
+}
+
+.call-preview .tok-comment {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.call-preview .tok-string {
+  color: #0f766e;
+}
+
+.call-preview .tok-flag {
+  color: #1d4ed8;
+}
+
+.call-preview .tok-cmd {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.call-preview .tok-key {
+  color: #0e7490;
+}
+
+.call-preview .tok-punct {
+  color: var(--muted);
 }
 
 .copy-btn {
@@ -640,12 +660,6 @@
 .submit:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.results:not(.show) .result-body,
-.results:not(.show) .loading-block,
-.results:not(.show) .phase-log {
-  display: none;
 }
 
 .loading-block {

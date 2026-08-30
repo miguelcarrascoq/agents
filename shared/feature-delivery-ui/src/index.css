@@ -1,11 +1,10 @@
 :root {
-  --bg0: #e8eef5;
-  --bg1: #d4e0ec;
+  --bg0: #eef2f6;
   --ink: #132033;
   --ink-soft: #3a4d63;
   --muted: #6b7c90;
   --line: rgba(19, 32, 51, 0.12);
-  --surface: rgba(255, 255, 255, 0.72);
+  --surface: #ffffff;
   --surface-solid: #f7fafc;
   --accent: #0d9488;
   --accent-deep: #0f766e;
@@ -13,7 +12,7 @@
   --danger: #c2410c;
   --danger-bg: rgba(194, 65, 12, 0.08);
   --ok: #047857;
-  --font-display: "Syne", system-ui, sans-serif;
+  --font-display: "Roboto", system-ui, sans-serif;
   --font-body: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --radius: 10px;
@@ -38,22 +37,7 @@ body {
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.5;
-  background:
-    radial-gradient(ellipse 90% 60% at 10% -10%, #b8d4e8 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 0%, #9fd4c8 0%, transparent 50%),
-    linear-gradient(165deg, var(--bg0) 0%, var(--bg1) 100%);
-  background-attachment: fixed;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  mix-blend-mode: soft-light;
-  z-index: 0;
+  background: var(--bg0);
 }
 
 #root {

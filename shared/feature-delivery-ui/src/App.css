@@ -12,9 +12,9 @@
 .brand {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 700;
   font-size: clamp(2.4rem, 6vw, 3.6rem);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em;
   line-height: 1.05;
   color: var(--ink);
 }
@@ -98,10 +98,64 @@
   margin-bottom: 0.85rem;
 }
 
+.form-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.run-form.collapsed .form-head {
+  margin-bottom: 0;
+}
+
+.params-summary {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.params-toggle {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.params-toggle:hover {
+  border-color: rgba(13, 148, 136, 0.45);
+}
+
+.run-form.collapsed .form-body {
+  display: none;
+}
+
 @media (max-width: 520px) {
   .form-head {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .form-head-actions {
+    justify-content: stretch;
+  }
+
+  .form-head-actions > * {
+    flex: 1;
+    max-width: none;
+    text-align: center;
   }
 
   .templates-trigger {
@@ -282,10 +336,14 @@
 }
 
 @media (min-width: 900px) {
-  .main-grid {
+  .main-grid:not(.run-active) {
     grid-template-columns: 1.05fr 0.95fr;
     align-items: start;
   }
+}
+
+.main-grid.run-active {
+  grid-template-columns: 1fr;
 }
 
 .run-form,
@@ -294,7 +352,6 @@
   border: 1px solid var(--line);
   border-radius: calc(var(--radius) + 4px);
   padding: 1.25rem 1.35rem 1.5rem;
-  backdrop-filter: blur(10px);
   box-shadow: var(--shadow);
 }
 
@@ -645,7 +702,7 @@
 .md {
   padding: 0.85rem 1rem;
   font-size: 0.88rem;
-  max-height: 420px;
+  max-height: 640px;
   overflow: auto;
   color: var(--ink-soft);
   line-height: 1.55;

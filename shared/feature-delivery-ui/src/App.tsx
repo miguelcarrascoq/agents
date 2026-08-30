@@ -50,6 +50,9 @@ export default function App() {
   const [phases, setPhases] = useState<PhaseEvent[]>([]);
   const [templateFlash, setTemplateFlash] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [paramsCollapsed, setParamsCollapsed] = useState(false);
+
+  const runActive = loading || !!result;
 
   const supportsQuiet = project === "smolagents-python";
   const activeTemplateTitle =
@@ -147,6 +150,7 @@ export default function App() {
     setError(null);
     setResult(null);
     setPhases([]);
+    setParamsCollapsed(true);
     try {
       const data = await createRun(
         {
@@ -160,6 +164,7 @@ export default function App() {
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+      setParamsCollapsed(false);
     } finally {
       setLoading(false);
     }
@@ -190,33 +195,62 @@ export default function App() {
         </div>
       </header>
 
-      <div className="main-grid">
+      <div className={runActive ? "main-grid run-active" : "main-grid"}>
         <form
-          className={templateFlash ? "run-form flash" : "run-form"}
+          className={[
+            "run-form",
+            templateFlash ? "flash" : "",
+            paramsCollapsed ? "collapsed" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onSubmit={onSubmit}
         >
           <div className="form-head">
             <div className="section-head">
               <h2>Parámetros</h2>
-              <p>Request, LLM, agentes y sandbox.</p>
+              {paramsCollapsed ? (
+                <p className="params-summary">
+                  {form.provider}/{form.model} · {form.agents.length} agente
+                  {form.agents.length === 1 ? "" : "s"}
+                  {activeTemplateTitle ? ` · ${activeTemplateTitle}` : ""}
+                </p>
+              ) : (
+                <p>Request, LLM, agentes y sandbox.</p>
+              )}
             </div>
-            <button
-              type="button"
-              className={
-                templatesOpen || activeTemplate
-                  ? "templates-trigger active"
-                  : "templates-trigger"
-              }
-              aria-expanded={templatesOpen}
-              aria-haspopup="dialog"
-              onClick={() => setTemplatesOpen(true)}
-            >
-              {activeTemplateTitle
-                ? `Plantilla: ${activeTemplateTitle}`
-                : "Plantillas"}
-            </button>
+            <div className="form-head-actions">
+              {runActive && (
+                <button
+                  type="button"
+                  className="params-toggle"
+                  aria-expanded={!paramsCollapsed}
+                  onClick={() => setParamsCollapsed((c) => !c)}
+                >
+                  {paramsCollapsed ? "Editar parámetros" : "Ocultar parámetros"}
+                </button>
+              )}
+              {!paramsCollapsed && (
+                <button
+                  type="button"
+                  className={
+                    templatesOpen || activeTemplate
+                      ? "templates-trigger active"
+                      : "templates-trigger"
+                  }
+                  aria-expanded={templatesOpen}
+                  aria-haspopup="dialog"
+                  onClick={() => setTemplatesOpen(true)}
+                >
+                  {activeTemplateTitle
+                    ? `Plantilla: ${activeTemplateTitle}`
+                    : "Plantillas"}
+                </button>
+              )}
+            </div>
           </div>
 
+          <div className="form-body">
           <label className="field">
             <span>Request (español)</span>
             <textarea
@@ -364,6 +398,7 @@ export default function App() {
           >
             {loading ? "Ejecutando…" : "Lanzar run"}
           </button>
+          </div>
         </form>
 
         <aside className={`results ${result || loading ? "show" : ""}`}>

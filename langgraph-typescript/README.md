@@ -17,12 +17,20 @@ npm install
 cp .env.example .env
 ```
 
-## Run (recommended)
+## Formas de uso
+
+| Modo | Cómo |
+|------|------|
+| TUI interactiva | `./run.sh` (wizard Inquirer) |
+| CLI one-shot | `./run.sh "…" [flags]` o `npm start` |
+| UI web + API | `./run.sh serve` → UI en `/`, `POST /runs`, Swagger en `/docs` |
+| Docker | ver [docker/README.md](../docker/README.md) |
+| Programático | `runFeatureDelivery` (abajo) |
 
 ```bash
 ./run.sh              # interactive wizard (inquirer)
 ./run.sh --help
-./run.sh serve        # HTTP API + Swagger UI
+./run.sh serve        # UI web (/) + API + Swagger (/docs)
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ```
 
@@ -64,7 +72,8 @@ const result = await runFeatureDelivery("Agregar autenticación JWT...", {
 
 ```bash
 ./run.sh serve
-# UI interactiva (Swagger): http://127.0.0.1:8000/docs
+# UI web:  http://127.0.0.1:8000/
+# Swagger: http://127.0.0.1:8000/docs
 curl -s http://127.0.0.1:8000/health
 curl -s -X POST http://127.0.0.1:8000/runs \
   -H 'Content-Type: application/json' \

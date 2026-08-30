@@ -75,6 +75,7 @@ Same interface in every project folder:
 | `./run.sh` | Interactive wizard (pick agents, provider, etc.; Esc cancels) |
 | `./run.sh --help` | Show flags and examples |
 | `./run.sh "feature..." [flags]` | Direct pipeline run |
+| `./run.sh serve` | UI web (`/`) + API (`POST /runs`) + Swagger (`/docs`) |
 
 **langflow-python only:**
 

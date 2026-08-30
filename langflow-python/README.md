@@ -26,11 +26,20 @@ Datos de Langflow (DB, flows en UI) viven en `data/langflow/` y **persisten** en
 
 **Importante:** Langflow 1.11+ exige `LANGFLOW_SUPERUSER_PASSWORD` en `.env` (si falta, el container crashea con `Username and password must be set`).
 
-## Run
+## Formas de uso
+
+| Modo | Cómo |
+|------|------|
+| TUI interactiva | `./run.sh` (wizard Inquirer) |
+| CLI one-shot | `./run.sh "…" [flags]` o `python -m app` |
+| UI web del lab + API | `./run.sh serve` → `:8000/` + `POST /runs` + Swagger `/docs` |
+| UI Langflow (flows) | `./run.sh server` → `:7860` |
+| Docker full-stack | ver [docker/README.md](../docker/README.md) (`--profile langflow-python`) |
+| Programático | `run_feature_delivery` (abajo) |
 
 ```bash
 ./run.sh              # wizard interactivo
-./run.sh serve        # HTTP API del lab (Swagger :8000/docs; distinto de Langflow :7860)
+./run.sh serve        # UI web (/) + API + Swagger (/docs) en :8000 (distinto de Langflow :7860)
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ./run.sh "Agregar autenticación JWT..." --agents researcher,planner,designer,diagrammer
 ./run.sh "genera una imagen del presidente actual de chile" --agents researcher,illustrator
@@ -56,7 +65,7 @@ Flags: `--provider openai|deepseek`, `--model`, `--run-id`, `--agents`, `-i`
 |---------|--------|
 | `./run.sh server` | Levantar Langflow, esperar health, bootstrap si hace falta |
 | `./run.sh server-stop` | Parar container (datos en `data/langflow/` se conservan) |
-| `./run.sh serve` | API HTTP del lab (`POST /runs`, Swagger en `:8000/docs`) |
+| `./run.sh serve` | UI web (`:8000/`) + API (`POST /runs`) + Swagger (`:8000/docs`) |
 | `./run.sh bootstrap-flows` | Re-subir flows y regenerar `flow_ids.json` |
 | `./run.sh generate-flows` | Regenerar `flows/*.json` desde código |
 
@@ -91,14 +100,15 @@ Distinto de `./run.sh server` (Langflow Docker en `:7860`). Este endpoint envuel
 
 ```bash
 ./run.sh serve
-# UI interactiva (Swagger): http://127.0.0.1:8000/docs
+# UI web:  http://127.0.0.1:8000/
+# Swagger: http://127.0.0.1:8000/docs
 curl -s http://127.0.0.1:8000/health
 curl -s -X POST http://127.0.0.1:8000/runs \
   -H 'Content-Type: application/json' \
   -d '{"request":"Agregar autenticación JWT...","agents":["planner","designer"]}'
 ```
 
-Requiere Langflow arriba (`./run.sh server`) para que el pipeline pueda llamar a los flows.
+Requiere Langflow arriba (`./run.sh server` → UI de flows en `:7860`) para que el pipeline pueda llamar a los flows.
 
 ## Mental model
 

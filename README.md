@@ -90,12 +90,22 @@ Detalle (todos los labs, Langflow, TypeScript): [docker/README.md](docker/README
 
 ### Run local (`./run.sh`)
 
+#### Formas de uso
+
+| Modo | Cómo |
+|------|------|
+| TUI interactiva | `./run.sh` (wizard Inquirer) |
+| CLI one-shot | `./run.sh "…" [flags]` o `python -m app` / `npm start` |
+| UI web + API | `./run.sh serve` → UI en `/`, `POST /runs`, Swagger en `/docs` |
+| Docker | ver [docker/README.md](docker/README.md) |
+| Programático | `run_feature_delivery` / `runFeatureDelivery` (ver README de cada lab) |
+
 ```bash
 cd langgraph-python
 ./run.sh setup          # venv + pip install + .env
 ./run.sh                # wizard interactivo (default)
 ./run.sh --help         # flags disponibles
-./run.sh serve          # HTTP API + Swagger en http://127.0.0.1:8000/docs
+./run.sh serve          # UI web (/) + API + Swagger en http://127.0.0.1:8000/
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ./run.sh "Agregar autenticación JWT..." --agents researcher,planner,designer,diagrammer
 ./run.sh "genera una imagen del presidente actual de chile" --agents researcher,illustrator

@@ -4,6 +4,15 @@ Need only **Docker** (Compose v2) and API keys — no local Python, Node, venv, 
 
 Root compose file: [`../docker-compose.yml`](../docker-compose.yml). Images: [`Dockerfile.python`](Dockerfile.python), [`Dockerfile.node`](Dockerfile.node).
 
+## Formas de uso
+
+| Modo | Cómo (Compose) |
+|------|----------------|
+| UI web + API + Swagger | `docker compose --profile <lab> up` → `/`, `/runs`, `/docs` |
+| CLI one-shot | `docker compose --profile <lab> run --rm …` |
+| TUI interactiva | `docker compose --profile <lab> run --rm -it …` (necesita TTY) |
+| Langflow UI (solo langflow) | profile `langflow-python` → `:7860` (+ lab en `:8000`) |
+
 ## Quick start
 
 ```bash
@@ -67,6 +76,7 @@ cp langflow-python/.env.example langflow-python/.env
 
 docker compose --profile langflow-python up --build
 # Langflow UI: http://127.0.0.1:7860
+# Lab UI:      http://127.0.0.1:8000/
 # Lab API:     http://127.0.0.1:8000/docs
 ```
 

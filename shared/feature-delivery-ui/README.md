@@ -1,6 +1,6 @@
 # Feature Delivery UI (shared)
 
-Open React + Vite front-end for every lab. No authentication.
+Open React + Vite front-end for every lab. No authentication. This is the UI served at `/` by `./run.sh serve` in each lab.
 
 ## Dev
 

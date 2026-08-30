@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { assetUrl, createRun, fetchHealth, type PhaseEvent } from "./api";
+import { buildApiPreview, buildCliPreview } from "./callPreview";
 import { MarkdownArtifact } from "./MarkdownArtifact";
 import { renderMarkdown } from "./markdown";
 import {
@@ -52,12 +53,18 @@ export default function App() {
   const [templateFlash, setTemplateFlash] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
+  const [callMethod, setCallMethod] = useState<"cli" | "api">("cli");
+  const [copied, setCopied] = useState(false);
 
   const runActive = loading || !!result;
 
   const supportsQuiet = project === "smolagents-python";
   const activeTemplateTitle =
     TEMPLATES.find((t) => t.id === activeTemplate)?.title ?? null;
+  const callPreview =
+    callMethod === "cli"
+      ? buildCliPreview(form, project, supportsQuiet)
+      : buildApiPreview(form);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +144,16 @@ export default function App() {
     });
   }
 
+  async function copyCallPreview() {
+    try {
+      await navigator.clipboard.writeText(callPreview);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!form.request.trim()) {
@@ -197,6 +214,7 @@ export default function App() {
       </header>
 
       <div className={runActive ? "main-grid run-active" : "main-grid"}>
+        <div className="params-col">
         <form
           className={[
             "run-form",
@@ -401,6 +419,48 @@ export default function App() {
           </button>
           </div>
         </form>
+
+        {!paramsCollapsed && (
+          <aside className="call-methods">
+            <div className="call-methods-head">
+              <div className="section-head">
+                <h2>Otros métodos</h2>
+                <p>El mismo run vía CLI o API.</p>
+              </div>
+              <button
+                type="button"
+                className="copy-btn"
+                onClick={copyCallPreview}
+              >
+                {copied ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+            <div className="presets call-method-tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={callMethod === "cli"}
+                className={callMethod === "cli" ? "chip active" : "chip"}
+                onClick={() => setCallMethod("cli")}
+              >
+                CLI
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={callMethod === "api"}
+                className={callMethod === "api" ? "chip active" : "chip"}
+                onClick={() => setCallMethod("api")}
+              >
+                API
+              </button>
+            </div>
+            <pre className="call-preview mono" tabIndex={0}>
+              {callPreview}
+            </pre>
+          </aside>
+        )}
+        </div>
 
         <aside className={`results ${result || loading ? "show" : ""}`}>
           <div className="section-head">

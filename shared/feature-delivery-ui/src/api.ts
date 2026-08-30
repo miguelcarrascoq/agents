@@ -20,7 +20,7 @@ export async function fetchHealth(): Promise<Health> {
   return res.json() as Promise<Health>;
 }
 
-function runBody(form: RunFormState): Record<string, unknown> {
+export function runBody(form: RunFormState): Record<string, unknown> {
   const body: Record<string, unknown> = {
     request: form.request.trim(),
     provider: form.provider,

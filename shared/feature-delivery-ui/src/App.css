@@ -335,6 +335,13 @@
   animation: rise 0.55s ease-out 0.08s both;
 }
 
+.params-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
 @media (min-width: 900px) {
   .main-grid:not(.run-active) {
     grid-template-columns: 1.05fr 0.95fr;
@@ -347,12 +354,60 @@
 }
 
 .run-form,
-.results {
+.results,
+.call-methods {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: calc(var(--radius) + 4px);
   padding: 1.25rem 1.35rem 1.5rem;
   box-shadow: var(--shadow);
+}
+
+.call-methods-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.call-methods-head .section-head {
+  margin-bottom: 0;
+}
+
+.call-method-tabs {
+  margin-top: 0.35rem;
+}
+
+.call-preview {
+  margin: 0.35rem 0 0;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-deep);
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  border-color: var(--accent-deep);
 }
 
 .run-form.flash {

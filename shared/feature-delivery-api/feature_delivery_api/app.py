@@ -8,6 +8,7 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 Runner = Callable[..., Any]
@@ -54,6 +55,10 @@ def create_app(
         ),
         version="0.1.0",
     )
+
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/docs")
 
     @app.get("/health")
     def health() -> dict[str, Any]:

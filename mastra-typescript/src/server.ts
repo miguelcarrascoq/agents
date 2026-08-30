@@ -128,6 +128,8 @@ const openApiDoc = {
 
 const app = new Hono();
 
+app.get("/", (c) => c.redirect("/docs"));
+
 app.get("/health", (c) => c.json({ ok: true, project: PROJECT_ID }));
 
 app.get("/openapi.json", (c) => c.json(openApiDoc));

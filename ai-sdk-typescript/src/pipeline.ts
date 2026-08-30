@@ -115,7 +115,7 @@ const PHASE_DEFS: Record<Phase, PhaseDef> = {
       `Feature request:\n${ctx.request}\n\nResearch:\n${ctx.research}\nEscribe plan.md completo.`,
   },
   designer: {
-    system: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
+    system: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
     prompt: (ctx) =>
       `Feature:\n${ctx.request}\n\nPlan:\n${ctx.plan}\nEscribe design.md con diagrama Mermaid de componentes (no ASCII).`,
   },

@@ -149,7 +149,7 @@ async def _run_async(
             instructions=(
                 f"{SPANISH} Eres el Designer. Escribe design.md (componentes, APIs, datos). "
                 "OBLIGATORIO: diagrama de componentes en fence ```mermaid con flowchart TD/LR. "
-                "Etiquetas en texto plano (sin HTML ni <br>). "
+                "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
                 "PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram."
             ),
             model=model_obj,

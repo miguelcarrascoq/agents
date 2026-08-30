@@ -211,7 +211,7 @@ def _phase_prompts(request: str, plan: str, design: str, research: str) -> dict[
             f"{SPANISH}\nEres el Designer.\nFeature: {request}\nPlan:\n{plan}\n"
             "Escribe design.md con write_file (componentes, APIs, datos, trade-offs). "
             "OBLIGATORIO: diagrama en fence ```mermaid con flowchart TD/LR. "
-            "Etiquetas en texto plano (sin HTML ni <br>). "
+            "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
             "PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram."
         ),
         "diagrammer": (

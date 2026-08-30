@@ -118,7 +118,7 @@ function buildNodeHandlers(sandbox: Sandbox, llm: ChatOpenAI) {
         " Eres el Designer/Architect. Produce design.md en markdown con: componentes, " +
         "APIs, modelo de datos, trade-offs y un diagrama de componentes. OBLIGATORIO: el " +
         "diagrama debe ir en un fence ```mermaid con flowchart TD o flowchart LR. " +
-        "Etiquetas en texto plano (sin HTML ni <br>). PROHIBIDO: diagramas ASCII/textual, " +
+        "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). PROHIBIDO: diagramas ASCII/textual, " +
         "sequenceDiagram, classDiagram.",
       `Request:\n${state.request}\n\nPlan:\n${state.plan}\n\nKnowledge:\n${knowledge}`,
     );

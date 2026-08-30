@@ -128,7 +128,7 @@ function buildPhaseRunners(
   });
   const designer = new Agent({
     name: "Designer",
-    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
+    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
     model,
     tools,
   });

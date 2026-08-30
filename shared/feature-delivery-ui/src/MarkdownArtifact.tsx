@@ -12,11 +12,13 @@ function ensureMermaid(): void {
   mermaidReady = true;
 }
 
-/** Strip HTML the LLM often puts in labels (<br/>, etc.) — breaks strict Mermaid. */
+/** Fix common LLM Mermaid mistakes that break the parser (strict mode). */
 export function sanitizeMermaidSource(text: string): string {
   return text
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/?[a-zA-Z][^>]*>/g, "")
+    // Double quotes inside labels/edges → single quotes (parser error otherwise).
+    .replace(/"/g, "'")
     .replace(/[ \t]+\n/g, "\n")
     .trim();
 }

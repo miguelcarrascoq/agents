@@ -115,9 +115,9 @@ const PHASE_DEFS: Record<Phase, PhaseDef> = {
       `Feature request:\n${ctx.request}\n\nResearch:\n${ctx.research}\nEscribe plan.md completo.`,
   },
   designer: {
-    system: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos).`,
+    system: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
     prompt: (ctx) =>
-      `Feature:\n${ctx.request}\n\nPlan:\n${ctx.plan}\nEscribe design.md.`,
+      `Feature:\n${ctx.request}\n\nPlan:\n${ctx.plan}\nEscribe design.md con diagrama Mermaid de componentes (no ASCII).`,
   },
   diagrammer: {
     system: `${SPANISH} Eres el Diagrammer. Usa write_mermaid para diagrams/architecture.mmd y diagrams/sequence.mmd. REGLA: cada archivo debe empezar con 'flowchart TD' o 'flowchart LR' (o 'graph TD'). NO uses sequenceDiagram ni classDiagram. sequence.mmd = flujo temporal con flowchart; architecture.mmd = componentes.`,

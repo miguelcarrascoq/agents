@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { assetUrl, createRun, fetchHealth, type PhaseEvent } from "./api";
+import { MarkdownArtifact } from "./MarkdownArtifact";
 import { renderMarkdown } from "./markdown";
 import {
   defaultModelFor,
@@ -486,12 +487,7 @@ export default function App() {
                   value && (
                     <details key={key} className="artifact" open={key === "plan"}>
                       <summary>{key}.md</summary>
-                      <div
-                        className="md"
-                        dangerouslySetInnerHTML={{
-                          __html: renderMarkdown(value),
-                        }}
-                      />
+                      <MarkdownArtifact html={renderMarkdown(value)} />
                     </details>
                   ),
               )}

@@ -128,7 +128,7 @@ function buildPhaseRunners(
   });
   const designer = new Agent({
     name: "Designer",
-    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos).`,
+    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
     model,
     tools,
   });
@@ -181,7 +181,7 @@ function buildPhaseRunners(
     },
     designer: async (ctx) => {
       const res = await designer.generate(
-        `Feature:\n${ctx.request}\n\nPlan:\n${ctx.plan}\nEscribe design.md.`,
+        `Feature:\n${ctx.request}\n\nPlan:\n${ctx.plan}\nEscribe design.md con diagrama Mermaid de componentes (no ASCII).`,
       );
       const designFile = sandbox.readFile("design.md");
       const design = designFile.startsWith("ERROR")

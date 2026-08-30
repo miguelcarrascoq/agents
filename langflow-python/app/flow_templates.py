@@ -48,7 +48,10 @@ AGENT_CONFIGS: dict[str, dict[str, Any]] = {
         "system_prompt": (
             SPANISH_BASE
             + " Eres el Designer/Architect. Produce design.md en markdown con: "
-            "componentes, APIs (endpoints), modelo de datos, trade-offs y diagrama textual."
+            "componentes, APIs (endpoints), modelo de datos, trade-offs y un diagrama de "
+            "componentes. OBLIGATORIO: el diagrama debe ir en un fence ```mermaid con "
+            "flowchart TD o flowchart LR. Etiquetas en texto plano (sin HTML ni <br>). "
+            "PROHIBIDO: diagramas ASCII/textual, sequenceDiagram, classDiagram."
         ),
         "include_web_search": False,
     },

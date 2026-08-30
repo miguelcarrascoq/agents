@@ -147,7 +147,10 @@ async def _run_async(
         "designer": Agent(
             name="Designer",
             instructions=(
-                f"{SPANISH} Eres el Designer. Escribe design.md (componentes, APIs, datos)."
+                f"{SPANISH} Eres el Designer. Escribe design.md (componentes, APIs, datos). "
+                "OBLIGATORIO: diagrama de componentes en fence ```mermaid con flowchart TD/LR. "
+                "Etiquetas en texto plano (sin HTML ni <br>). "
+                "PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram."
             ),
             model=model_obj,
             tools=tools,

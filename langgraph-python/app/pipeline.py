@@ -121,7 +121,11 @@ def build_node_handlers(sandbox: Sandbox, provider: str | None = None, model: st
             llm,
             SPANISH_SYSTEM
             + " Eres el Designer/Architect. Produce design.md en markdown con: "
-            "componentes, APIs (endpoints), modelo de datos, trade-offs y diagrama textual.",
+            "componentes, APIs (endpoints), modelo de datos, trade-offs y un diagrama de "
+            "componentes. OBLIGATORIO: el diagrama debe ir en un fence ```mermaid con "
+            "flowchart TD o flowchart LR. Etiquetas de nodos en texto plano corto "
+            "(sin HTML ni <br>). PROHIBIDO: diagramas ASCII/textual, sequenceDiagram, "
+            "classDiagram.",
             f"Request:\n{state['request']}\n\nPlan:\n{state['plan']}\n\nKnowledge:\n{knowledge}",
         )
         sandbox.write_file("design.md", design)

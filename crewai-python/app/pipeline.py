@@ -247,7 +247,10 @@ def _build_task(
             description=(
                 f"Feature request:\n{request}\n\nPlan existente:\n{plan}\n\n"
                 "Produce design.md (write_file) con componentes, endpoints, "
-                "modelo de datos y trade-offs. Usa search_knowledge sobre api design si hace falta."
+                "modelo de datos, trade-offs y diagrama de componentes. OBLIGATORIO: fence "
+                "```mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>). "
+                "PROHIBIDO: ASCII/textual, sequenceDiagram, "
+                "classDiagram. Usa search_knowledge sobre api design si hace falta."
             ),
             expected_output="Contenido de design.md en español",
             agent=agent_map["designer"],

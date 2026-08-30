@@ -130,6 +130,22 @@ services:
       - ./mastra-typescript/knowledge:/workspace/mastra-typescript/knowledge:ro
     working_dir: /workspace/mastra-typescript
 
+  ai-sdk-typescript:
+    <<: *node-lab
+    profiles: ["ai-sdk-typescript"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+      args:
+        LAB: ai-sdk-typescript
+    env_file:
+      - path: ./ai-sdk-typescript/.env
+        required: false
+    volumes:
+      - ./ai-sdk-typescript/output:/workspace/ai-sdk-typescript/output
+      - ./ai-sdk-typescript/knowledge:/workspace/ai-sdk-typescript/knowledge:ro
+    working_dir: /workspace/ai-sdk-typescript
+
   # Langflow UI (existing public image). Orchestrator is langflow-python below.
   # Secrets and LANGFLOW_* come from langflow-python/.env (do not interpolate
   # empty ${VAR:-} here — that would override env_file with blanks).

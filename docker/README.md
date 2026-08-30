@@ -35,6 +35,7 @@ Artifacts land on the host under `<lab>/output/`. Knowledge is mounted read-only
 | `openai-agents-python` | Python + OpenAI Agents | `8000` |
 | `langgraph-typescript` | TypeScript + LangGraph.js | `8000` |
 | `mastra-typescript` | TypeScript + Mastra | `8000` |
+| `ai-sdk-typescript` | TypeScript + Vercel AI SDK | `8000` |
 | `langflow-python` | Lab API + Langflow UI | `8000` + `7860` |
 
 Run **one profile at a time** (labs share host port `8000`).
@@ -53,7 +54,7 @@ docker compose --profile langgraph-typescript run --rm -it langgraph-typescript 
   npm start -- --interactive
 ```
 
-Same pattern for `mastra-typescript`.
+Same pattern for `mastra-typescript` and `ai-sdk-typescript`.
 
 ### Langflow lab
 

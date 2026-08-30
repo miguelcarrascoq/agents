@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+RUN_KIND="node"
+PROJECT_NAME="ai-sdk-typescript"
+SUPPORTS_QUIET="false"
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+# Prefer nvm Node >=20.6 (package engines); fall back to whatever is on PATH.
+ensure_node() {
+  if [[ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]]; then
+    # shellcheck source=/dev/null
+    source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+    nvm use 20 >/dev/null 2>&1 || nvm use 22 >/dev/null 2>&1 || true
+  fi
+  local major
+  major="$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)"
+  if (( major < 20 )); then
+    echo "Node >=20.6.0 required (found $(node -v 2>/dev/null || echo none))." >&2
+    echo "Install/use Node 20+: nvm install 20 && nvm use 20" >&2
+    exit 1
+  fi
+}
+ensure_node
+
+usage() {
+  cat <<EOF
+Usage: ./run.sh [setup | serve | --help | -h | --interactive | -i] ["<feature en español>"] [options]
+
+Project: ${PROJECT_NAME}
+
+Commands:
+  setup             npm install + .env
+  serve             HTTP API (Swagger UI at http://127.0.0.1:8000/docs)
+
+Options (passed to pipeline):
+  --provider openai|deepseek
+  --model NAME
+  --run-id ID
+  --agents researcher,planner,designer,diagrammer,illustrator,coder,reviewer
+
+Examples:
+  ./run.sh
+  ./run.sh setup
+  ./run.sh serve
+  ./run.sh "Agregar autenticación JWT..." --agents planner,designer
+EOF
+}
+
+cmd_setup() {
+  npm install
+  if [[ ! -f .env ]] && [[ -f .env.example ]]; then
+    cp .env.example .env
+    echo "Created .env from .env.example — edit your API keys."
+  fi
+}
+
+ensure_ready() {
+  if [[ ! -d node_modules ]]; then
+    echo "Missing node_modules. Run: ./run.sh setup" >&2
+    exit 1
+  fi
+}
+
+run_app() {
+  ensure_ready
+  exec npm start -- "$@"
+}
+
+run_serve() {
+  ensure_ready
+  shift
+  exec npm run serve -- "$@"
+}
+
+if [[ $# -eq 0 ]]; then
+  run_app --interactive
+elif [[ "$1" == "setup" ]]; then
+  cmd_setup
+elif [[ "$1" == "serve" ]]; then
+  run_serve "$@"
+elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  usage
+else
+  run_app "$@"
+fi

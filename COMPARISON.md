@@ -1,6 +1,6 @@
 # Comparison guide
 
-Same feature-delivery pipeline in seven frameworks. Use this checklist while you run the same Spanish prompt in each lab.
+Same feature-delivery pipeline in eight frameworks. Use this checklist while you run the same Spanish prompt in each lab.
 
 ## Recommended pattern
 
@@ -19,10 +19,11 @@ The stronger pattern across this monorepo is the **shared artifact contract** be
 
 1. **LangGraph (Python or TS)** — Default for production-style pipelines with branches, retries, and resume.
 2. **OpenAI Agents SDK** — Agents-as-objects + tools + native handoffs; OpenAI-first DX. This lab chains with a `for` + `Runner.run` per phase (strong units; weaker than LangGraph for complex control flow).
-3. **Mastra** — Reasonable TypeScript Agent + workflow steps; prefer over LangGraph.js only if you already live in Mastra / AI SDK.
-4. **CrewAI** — Fast role/goal narrative; weaker for explicit state, loops, and “run only coder.”
-5. **smolagents** — Minimal surface; good for one tool-calling agent or short chains, not serious multi-phase orchestration.
-6. **Langflow** — Visual / non-dev prototyping; not ideal for versioning independent agents as code.
+3. **AI SDK (TypeScript)** — Bare `generateText` + `tool` + `stopWhen`; lightest TS surface for the shared contract. Prefer when you want Vercel AI SDK without a workflow framework.
+4. **Mastra** — Agents + workflow steps on top of AI SDK; prefer over bare AI SDK only if you already live in Mastra.
+5. **CrewAI** — Fast role/goal narrative; weaker for explicit state, loops, and “run only coder.”
+6. **smolagents** — Minimal surface; good for one tool-calling agent or short chains, not serious multi-phase orchestration.
+7. **Langflow** — Visual / non-dev prototyping; not ideal for versioning independent agents as code.
 
 ### Frameworks?
 
@@ -42,6 +43,7 @@ Yes, but **thin and purposeful**:
 | openai-agents-python | Agents + handoffs | Delegation primitives; OpenAI-native DX |
 | langgraph-typescript | Same graph idea in JS/TS | Language ergonomics vs langgraph-python (**recommended on TS**) |
 | mastra-typescript | Agents + workflow steps | TS-native workflows, typed steps |
+| ai-sdk-typescript | `generateText` + tools + `stopWhen` | Vercel AI SDK tool loop without Mastra/LangGraph |
 | langflow-python | 7 agent flows in UI + Python REST orchestrator | Visual editing, custom components, API-first deployment |
 
 ## Shared contract

@@ -1,6 +1,6 @@
 # Feature Delivery Agent Labs
 
-Monorepo con **7 labs** que implementan el mismo pipeline multi-agente de desarrollo de software. Cada carpeta es un proyecto ejecutable e independiente; el código común vive en `shared/` y la base de conocimiento canónica en `knowledge-source/`.
+Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarrollo de software. Cada carpeta es un proyecto ejecutable e independiente; el código común vive en `shared/` y la base de conocimiento canónica en `knowledge-source/`.
 
 **Patrón recomendado** para agentes independientes o encadenados: **LangGraph** ([langgraph-python](langgraph-python/), o [langgraph-typescript](langgraph-typescript/) en Node) más el **contrato de artefactos** compartido. Detalle, ranking y cuándo usar cada lab: [COMPARISON.md](COMPARISON.md#recommended-pattern).
 
@@ -44,6 +44,7 @@ python -m app "genera una imagen del presidente actual de chile" --agents resear
 | [openai-agents-python](openai-agents-python/) | Python + OpenAI Agents SDK | Sequential agents |
 | [langgraph-typescript](langgraph-typescript/) | TypeScript + LangGraph.js | Mismo grafo en TS (**recomendado en TS**) |
 | [mastra-typescript](mastra-typescript/) | TypeScript + Mastra | Workflows/agents TS |
+| [ai-sdk-typescript](ai-sdk-typescript/) | TypeScript + Vercel AI SDK | `generateText` + tools + `stopWhen` |
 | [langflow-python](langflow-python/) | Python + Langflow | UI visual + REST API, custom components |
 
 Ver [COMPARISON.md](COMPARISON.md) para el patrón recomendado, ranking y qué observar al comparar.
@@ -55,7 +56,7 @@ Ver [COMPARISON.md](COMPARISON.md) para el patrón recomendado, ranking y qué o
 **Opción B — local:**
 
 - Python 3.11+ (proyectos Python)
-- Node.js 20.6+ (proyectos TypeScript; Mastra lo exige)
+- Node.js 20.6+ (proyectos TypeScript; Mastra / AI SDK lo exigen)
 - **Langflow lab only:** Docker; `LANGFLOW_API_KEY` se genera en setup/server (ver [langflow-python](langflow-python/))
 
 En ambos casos:

@@ -2,15 +2,45 @@
 
 Same feature-delivery pipeline in seven frameworks. Use this checklist while you run the same Spanish prompt in each lab.
 
+## Recommended pattern
+
+For agents that must run **independently or chained**, start with **LangGraph** ([langgraph-python](langgraph-python/), or [langgraph-typescript](langgraph-typescript/) on Node). It is the only mental model here that covers both modes well:
+
+| Need | How LangGraph covers it in this lab |
+|------|-------------------------------------|
+| Independent | Each agent is a **node** (function over shared `GraphState`); CLI invokes `nodes[phase](state)` via `--agents` |
+| Chained | Explicit edges (`researcher → planner → …`) + **conditional edges** (reviewer → coder loop) |
+| Phase contract | Typed state + on-disk artifacts (`plan.md`, `design.md`, …) via the sandbox |
+| Resume | `--run-id` + `load_artifacts` — no need to re-run the full graph |
+
+The stronger pattern across this monorepo is the **shared artifact contract** below, not “Crew vs Graph.” Any framework should serve that contract (public API, sandbox tools, selective `--agents`, resume via `--run-id`), not replace it. Keep orchestration **deterministic**; the LLM lives *inside* each node.
+
+### When to use which lab
+
+1. **LangGraph (Python or TS)** — Default for production-style pipelines with branches, retries, and resume.
+2. **OpenAI Agents SDK** — Agents-as-objects + tools + native handoffs; OpenAI-first DX. This lab chains with a `for` + `Runner.run` per phase (strong units; weaker than LangGraph for complex control flow).
+3. **Mastra** — Reasonable TypeScript Agent + workflow steps; prefer over LangGraph.js only if you already live in Mastra / AI SDK.
+4. **CrewAI** — Fast role/goal narrative; weaker for explicit state, loops, and “run only coder.”
+5. **smolagents** — Minimal surface; good for one tool-calling agent or short chains, not serious multi-phase orchestration.
+6. **Langflow** — Visual / non-dev prototyping; not ideal for versioning independent agents as code.
+
+### Frameworks?
+
+Yes, but **thin and purposeful**:
+
+- Use a framework for shared typed state, branches/loops, checkpoints, tracing, typed handoffs, or a settled LLM/tools stack.
+- Skip a heavy multi-agent narrative core (CrewAI/Langflow as the system of record) if the pipeline is a fixed linear sequence: a loop + artifacts + tool-calling is enough.
+- Rule of thumb: **framework for orchestration and agents; your code for artifact contract, sandbox, and API.**
+
 ## Mental models
 
 | Project | How orchestration looks | Best for noticing… |
 |---------|-------------------------|--------------------|
-| langgraph-python | Explicit nodes + edges over shared state | Control flow, optional review→code loops, checkpointing story |
+| langgraph-python | Explicit nodes + edges over shared state | Control flow, optional review→code loops, checkpointing story (**recommended default**) |
 | crewai-python | Role / goal / backstory + sequential tasks | Fastest multi-agent narrative; less explicit state machine |
 | smolagents-python | Tool-calling / code agents | Minimal framework surface; agent drives tools |
 | openai-agents-python | Agents + handoffs | Delegation primitives; OpenAI-native DX |
-| langgraph-typescript | Same graph idea in JS/TS | Language ergonomics vs langgraph-python |
+| langgraph-typescript | Same graph idea in JS/TS | Language ergonomics vs langgraph-python (**recommended on TS**) |
 | mastra-typescript | Agents + workflow steps | TS-native workflows, typed steps |
 | langflow-python | 7 agent flows in UI + Python REST orchestrator | Visual editing, custom components, API-first deployment |
 
@@ -26,6 +56,8 @@ Same feature-delivery pipeline in seven frameworks. Use this checklist while you
 - Selective run: `--agents researcher,planner` or `--agents researcher,illustrator` (illustrator does not require plan/design)
 - Resume artifacts: `--run-id <existing>` (loads `plan.md`, `design.md`, etc. from sandbox)
 - Interactive run: `./run.sh` or `-i` / `--interactive` (CLI wizard: InquirerPy in Python, @inquirer/prompts in TS)
+
+Phases stay decoupled via **artifacts on disk**, not opaque chat memory: run one agent alone when prerequisites exist, or chain the same set in order (with loops where the graph defines them).
 
 ## `./run.sh` (all labs)
 

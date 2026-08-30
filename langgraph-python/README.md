@@ -1,5 +1,7 @@
 # LangGraph — Feature Delivery Lab
 
+**Patrón recomendado** del monorepo para agentes independientes o encadenados (ver [COMPARISON.md](../COMPARISON.md#recommended-pattern)): nodos sobre estado compartido, edges + loop Reviewer→Coder, y contrato de artefactos en disco.
+
 Pipeline multi-agente: **Planner → Designer → Coder → Reviewer** (con posible loop Reviewer→Coder).
 
 Agentes opt-in: **Researcher** (web), **Diagrammer** (Mermaid), **Illustrator** (imágenes OpenAI).

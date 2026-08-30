@@ -2,6 +2,8 @@
 
 Monorepo con **7 labs** que implementan el mismo pipeline multi-agente de desarrollo de software. Cada carpeta es un proyecto ejecutable e independiente; el código común vive en `shared/` y la base de conocimiento canónica en `knowledge-source/`.
 
+**Patrón recomendado** para agentes independientes o encadenados: **LangGraph** ([langgraph-python](langgraph-python/), o [langgraph-typescript](langgraph-typescript/) en Node) más el **contrato de artefactos** compartido. Detalle, ranking y cuándo usar cada lab: [COMPARISON.md](COMPARISON.md#recommended-pattern).
+
 ## Layout
 
 | Ruta | Rol |
@@ -21,7 +23,7 @@ Monorepo con **7 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Salida:** `output/<run_id>/` con `research.md`, `plan.md`, `design.md`, `diagrams/*.mmd`, `assets/*.png`, `src/**`, `review.md`, `summary.json`
 
-La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Luego puedes envolverla en HTTP (FastAPI / Hono) sin reescribir el pipeline.
+Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Luego puedes envolverla en HTTP (FastAPI / Hono) sin reescribir el pipeline.
 
 Ejecutar solo algunos agentes:
 
@@ -36,15 +38,15 @@ python -m app "genera una imagen del presidente actual de chile" --agents resear
 
 | Carpeta | Stack | Mental model |
 |---------|--------|--------------|
-| [langgraph-python](langgraph-python/) | Python + LangGraph | Grafo con estado |
+| [langgraph-python](langgraph-python/) | Python + LangGraph | Grafo con estado (**recomendado**) |
 | [crewai-python](crewai-python/) | Python + CrewAI | Roles + Crew |
 | [smolagents-python](smolagents-python/) | Python + smolagents | Code-first / tools |
 | [openai-agents-python](openai-agents-python/) | Python + OpenAI Agents SDK | Sequential agents |
-| [langgraph-typescript](langgraph-typescript/) | TypeScript + LangGraph.js | Mismo grafo en TS |
+| [langgraph-typescript](langgraph-typescript/) | TypeScript + LangGraph.js | Mismo grafo en TS (**recomendado en TS**) |
 | [mastra-typescript](mastra-typescript/) | TypeScript + Mastra | Workflows/agents TS |
 | [langflow-python](langflow-python/) | Python + Langflow | UI visual + REST API, custom components |
 
-Ver [COMPARISON.md](COMPARISON.md) para qué observar al comparar.
+Ver [COMPARISON.md](COMPARISON.md) para el patrón recomendado, ranking y qué observar al comparar.
 
 ## Requisitos
 

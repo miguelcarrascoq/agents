@@ -151,3 +151,8 @@ def log_phase_start(
     )
     sys.stderr.write(banner)
     sys.stderr.flush()
+    try:
+        from feature_delivery_api.progress import emit_phase
+    except ImportError:
+        return
+    emit_phase(phase, index, total, run_id, framework)

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createRun, fetchHealth } from "./api";
+import { assetUrl, createRun, fetchHealth, type PhaseEvent } from "./api";
+import { renderMarkdown } from "./markdown";
 import {
   defaultModelFor,
   isKnownModel,
@@ -31,18 +32,8 @@ function orderAgents(selected: AgentName[]): AgentName[] {
   return AGENT_ORDER.filter((a) => selected.includes(a));
 }
 
-function simpleMarkdown(text: string): string {
-  const escaped = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  return escaped
-    .replace(/^### (.+)$/gm, "<h4>$1</h4>")
-    .replace(/^## (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^# (.+)$/gm, "<h3>$1</h3>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\n/g, "<br />");
+function isImageAsset(path: string): boolean {
+  return /\.(png|jpe?g|webp|gif)$/i.test(path);
 }
 
 export default function App() {
@@ -56,6 +47,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
+  const [phases, setPhases] = useState<PhaseEvent[]>([]);
   const [templateFlash, setTemplateFlash] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
@@ -154,11 +146,17 @@ export default function App() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setPhases([]);
     try {
-      const data = await createRun({
-        ...form,
-        agents: orderAgents(form.agents),
-      });
+      const data = await createRun(
+        {
+          ...form,
+          agents: orderAgents(form.agents),
+        },
+        {
+          onPhase: (event) => setPhases((prev) => [...prev, event]),
+        },
+      );
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -380,10 +378,43 @@ export default function App() {
             </p>
           </div>
 
+          {(loading || phases.length > 0) && (
+            <ol className="phase-log" aria-live="polite">
+              {phases.map((p, i) => {
+                const done = !loading || i < phases.length - 1;
+                const active = loading && i === phases.length - 1;
+                return (
+                  <li
+                    key={`${p.phase}-${p.index}-${i}`}
+                    className={
+                      active ? "phase active" : done ? "phase done" : "phase"
+                    }
+                  >
+                    <span className="phase-banner">
+                      Pipeline {p.index}/{p.total} · {p.phase}
+                    </span>
+                    <span className="phase-meta mono">
+                      run_id={p.run_id} · {p.framework}
+                    </span>
+                  </li>
+                );
+              })}
+              {loading && phases.length === 0 && (
+                <li className="phase active">
+                  <span className="phase-banner">Iniciando pipeline…</span>
+                </li>
+              )}
+            </ol>
+          )}
+
           {loading && (
             <div className="loading-block" aria-busy="true">
               <div className="spinner" />
-              <p>Corriendo agentes…</p>
+              <p>
+                {phases.length
+                  ? `Ejecutando ${phases[phases.length - 1].phase}…`
+                  : "Corriendo agentes…"}
+              </p>
             </div>
           )}
 
@@ -423,7 +454,7 @@ export default function App() {
                       <div
                         className="md"
                         dangerouslySetInnerHTML={{
-                          __html: simpleMarkdown(value),
+                          __html: renderMarkdown(value),
                         }}
                       />
                     </details>
@@ -434,7 +465,6 @@ export default function App() {
                 [
                   ["files", result.files],
                   ["diagrams", result.diagrams],
-                  ["assets", result.assets],
                 ] as const
               ).map(
                 ([key, list]) =>
@@ -451,6 +481,30 @@ export default function App() {
                       </ul>
                     </div>
                   ),
+              )}
+
+              {result.assets && result.assets.length > 0 && (
+                <div className="path-list assets-gallery">
+                  <h3>assets</h3>
+                  <ul className="asset-list">
+                    {result.assets.map((p) => (
+                      <li key={p}>
+                        {isImageAsset(p) ? (
+                          <figure className="asset-figure">
+                            <img
+                              src={assetUrl(result.run_id, p)}
+                              alt={p}
+                              loading="lazy"
+                            />
+                            <figcaption className="mono">{p}</figcaption>
+                          </figure>
+                        ) : (
+                          <span className="mono">{p}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           )}

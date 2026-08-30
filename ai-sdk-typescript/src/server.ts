@@ -1,9 +1,10 @@
 /**
  * HTTP API for feature-delivery lab (Hono + open UI + Swagger).
  * No authentication — UI and API are open.
- * POST /runs wraps runFeatureDelivery; UI at /; docs at /docs.
+ * POST /runs wraps runFeatureDelivery; UI at `/`; docs at `/docs`.
+ * Accept: text/event-stream → SSE phase/done/error events.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { serve } from "@hono/node-server";
@@ -13,7 +14,8 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
 import { resolveUiDist } from "../../shared/feature-delivery-ui/resolve-ui-dist.mjs";
-import { runFeatureDelivery } from "./pipeline.js";
+import { runWithPhaseListener } from "./phaseLog.js";
+import { OUTPUT_DIR, runFeatureDelivery } from "./pipeline.js";
 
 const PROJECT_ID = "ai-sdk-typescript";
 
@@ -24,6 +26,51 @@ type RunBody = {
   run_id?: string;
   agents?: string | string[];
 };
+
+const MIME: Record<string, string> = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".md": "text/markdown; charset=utf-8",
+  ".mmd": "text/plain; charset=utf-8",
+  ".json": "application/json",
+  ".ts": "text/plain; charset=utf-8",
+  ".tsx": "text/plain; charset=utf-8",
+  ".js": "text/plain; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+};
+
+function guessMime(filePath: string): string {
+  return MIME[path.extname(filePath).toLowerCase()] ?? "application/octet-stream";
+}
+
+function sseChunk(event: string, data: unknown): Uint8Array {
+  return new TextEncoder().encode(
+    `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
+  );
+}
+
+function resolveRunFile(runId: string, relPath: string): string {
+  if (!runId || runId.includes("..") || runId.includes("/") || runId.includes("\\")) {
+    throw new HTTPException(400, { message: "Invalid run_id" });
+  }
+  const root = path.resolve(OUTPUT_DIR, runId);
+  if (!existsSync(root) || !statSync(root).isDirectory()) {
+    throw new HTTPException(404, { message: "Run output not found" });
+  }
+  const target = path.resolve(root, relPath);
+  const rel = path.relative(root, target);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) {
+    throw new HTTPException(400, { message: "Invalid file path" });
+  }
+  if (!existsSync(target) || !statSync(target).isFile()) {
+    throw new HTTPException(404, { message: "File not found" });
+  }
+  return target;
+}
 
 const openApiDoc = {
   openapi: "3.0.0",
@@ -102,7 +149,7 @@ const openApiDoc = {
         },
         responses: {
           "200": {
-            description: "RunResult summary",
+            description: "RunResult summary (or SSE if Accept: text/event-stream)",
             content: {
               "application/json": {
                 schema: {
@@ -140,6 +187,15 @@ app.get("/openapi.json", (c) => c.json(openApiDoc));
 
 app.get("/docs", swaggerUI({ url: "/openapi.json" }));
 
+app.get("/runs/:runId/files/*", (c) => {
+  const runId = c.req.param("runId");
+  const prefix = `/runs/${runId}/files/`;
+  const relPath = decodeURIComponent(c.req.path.slice(prefix.length));
+  const target = resolveRunFile(runId, relPath);
+  const body = readFileSync(target);
+  return c.body(body, 200, { "Content-Type": guessMime(target) });
+});
+
 app.post("/runs", async (c) => {
   let body: RunBody;
   try {
@@ -151,18 +207,53 @@ app.post("/runs", async (c) => {
   if (!request) {
     throw new HTTPException(400, { message: "Field 'request' is required" });
   }
-  try {
-    const result = await runFeatureDelivery(request, {
-      provider: body.provider,
-      model: body.model,
-      runId: body.run_id,
-      agents: body.agents,
-    });
-    return c.json(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new HTTPException(400, { message });
+
+  const opts = {
+    provider: body.provider,
+    model: body.model,
+    runId: body.run_id,
+    agents: body.agents,
+  };
+
+  const accept = c.req.header("accept") ?? "";
+  if (!accept.includes("text/event-stream")) {
+    try {
+      const result = await runFeatureDelivery(request, opts);
+      return c.json(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new HTTPException(400, { message });
+    }
   }
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: string, data: unknown) => {
+        controller.enqueue(sseChunk(event, data));
+      };
+      try {
+        const result = await runWithPhaseListener(
+          (payload) => send("phase", payload),
+          () => runFeatureDelivery(request, opts),
+        );
+        send("done", result);
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        send("error", { detail });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
 });
 
 const uiDist = resolveUiDist(import.meta.url);

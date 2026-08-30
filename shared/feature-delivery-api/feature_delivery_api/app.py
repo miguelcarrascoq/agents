@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 import argparse
+import json
+import mimetypes
 import os
-from collections.abc import Callable
+import queue
+import threading
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
+
+from feature_delivery_api.progress import bind_progress
 
 Runner = Callable[..., Any]
 
@@ -70,11 +76,57 @@ def _ui_dist_dir() -> Path | None:
     return None
 
 
+def _runner_kwargs(body: RunRequest, *, supports_quiet: bool) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {
+        "provider": body.provider,
+        "model": body.model,
+        "run_id": body.run_id,
+        "agents": body.agents,
+    }
+    if supports_quiet and body.quiet is not None:
+        kwargs["quiet"] = body.quiet
+    return kwargs
+
+
+def _summarize(result: Any) -> dict[str, Any]:
+    if hasattr(result, "to_summary") and callable(result.to_summary):
+        return result.to_summary()
+    if isinstance(result, dict):
+        return result
+    raise RuntimeError("Unexpected runner result type")
+
+
+def _sse_format(event: str, data: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def _wants_sse(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return "text/event-stream" in accept
+
+
+def _safe_run_file(output_root: Path, run_id: str, file_path: str) -> Path:
+    if not run_id or ".." in run_id or "/" in run_id or "\\" in run_id:
+        raise HTTPException(status_code=400, detail="Invalid run_id")
+    root = (output_root / run_id).resolve()
+    if not root.is_dir():
+        raise HTTPException(status_code=404, detail="Run output not found")
+    target = (root / file_path).resolve()
+    try:
+        target.relative_to(root)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid file path") from exc
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    return target
+
+
 def create_app(
     *,
     runner: Runner,
     project_id: str,
     supports_quiet: bool = False,
+    output_root: Path | None = None,
 ) -> FastAPI:
     """Build a FastAPI app that exposes GET /health and POST /runs.
 
@@ -88,33 +140,74 @@ def create_app(
         ),
         version="0.1.0",
     )
+    resolved_output = (
+        output_root.resolve()
+        if output_root is not None
+        else (Path.cwd() / "output").resolve()
+    )
 
     @app.get("/health")
     def health() -> dict[str, Any]:
         return {"ok": True, "project": project_id}
 
-    @app.post("/runs")
-    def create_run(body: RunRequest) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {
-            "provider": body.provider,
-            "model": body.model,
-            "run_id": body.run_id,
-            "agents": body.agents,
-        }
-        if supports_quiet and body.quiet is not None:
-            kwargs["quiet"] = body.quiet
-        try:
-            result = runner(body.request, **kwargs)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except RuntimeError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+    @app.get("/runs/{run_id}/files/{file_path:path}")
+    def get_run_file(run_id: str, file_path: str) -> FileResponse:
+        target = _safe_run_file(resolved_output, run_id, file_path)
+        media_type, _ = mimetypes.guess_type(str(target))
+        return FileResponse(target, media_type=media_type or "application/octet-stream")
 
-        if hasattr(result, "to_summary") and callable(result.to_summary):
-            return result.to_summary()
-        if isinstance(result, dict):
-            return result
-        raise HTTPException(status_code=500, detail="Unexpected runner result type")
+    @app.post("/runs")
+    def create_run(body: RunRequest, request: Request) -> Any:
+        kwargs = _runner_kwargs(body, supports_quiet=supports_quiet)
+
+        if not _wants_sse(request):
+            try:
+                result = runner(body.request, **kwargs)
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except RuntimeError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            try:
+                return _summarize(result)
+            except RuntimeError as exc:
+                raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+        events: queue.Queue[tuple[str, dict[str, Any]] | None] = queue.Queue()
+
+        def on_phase(payload: dict[str, Any]) -> None:
+            events.put(("phase", payload))
+
+        def worker() -> None:
+            try:
+                with bind_progress(on_phase):
+                    result = runner(body.request, **kwargs)
+                events.put(("done", _summarize(result)))
+            except (ValueError, RuntimeError) as exc:
+                events.put(("error", {"detail": str(exc)}))
+            except Exception as exc:  # noqa: BLE001 — surface to client
+                events.put(("error", {"detail": str(exc)}))
+            finally:
+                events.put(None)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+        def event_stream() -> Iterator[str]:
+            while True:
+                item = events.get()
+                if item is None:
+                    break
+                event, data = item
+                yield _sse_format(event, data)
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
+        )
 
     ui_dist = _ui_dist_dir()
     if ui_dist is not None:
@@ -144,6 +237,7 @@ def serve(
     runner: Runner,
     project_id: str,
     supports_quiet: bool = False,
+    output_root: Path | None = None,
     host: str | None = None,
     port: int | None = None,
 ) -> None:
@@ -170,6 +264,7 @@ def serve(
         runner=runner,
         project_id=project_id,
         supports_quiet=supports_quiet,
+        output_root=output_root,
     )
     ui = _ui_dist_dir()
     if ui:

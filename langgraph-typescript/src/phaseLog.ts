@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import { Sandbox } from "./tools.js";
 
 export const PHASES = [
@@ -121,6 +123,26 @@ export function validateAgentSelection(selected: Phase[], sandbox: Sandbox): voi
   }
 }
 
+export type PhaseEvent = {
+  phase: string;
+  index: number;
+  total: number;
+  run_id: string;
+  framework: string;
+};
+
+type PhaseListener = (event: PhaseEvent) => void;
+
+const phaseStore = new AsyncLocalStorage<PhaseListener>();
+
+/** Run `fn` with a phase listener visible to `logPhaseStart` (HTTP SSE). */
+export function runWithPhaseListener<T>(
+  listener: PhaseListener,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return phaseStore.run(listener, fn);
+}
+
 export function logPhaseStart(
   phase: string,
   index: number,
@@ -134,4 +156,11 @@ export function logPhaseStart(
     `(run_id=${runId} · ${framework})\n` +
     `${"═".repeat(40)}\n`;
   process.stderr.write(banner);
+  phaseStore.getStore()?.({
+    phase,
+    index,
+    total,
+    run_id: runId,
+    framework,
+  });
 }

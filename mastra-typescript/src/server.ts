@@ -63,7 +63,6 @@ const openApiDoc = {
                   request: {
                     type: "string",
                     description: "Feature request in Spanish",
-                    example: "Agregar autenticación JWT...",
                   },
                   provider: {
                     type: "string",
@@ -82,8 +81,14 @@ const openApiDoc = {
                       { type: "array", items: { type: "string" } },
                     ],
                     nullable: true,
-                    example: ["planner", "designer"],
                   },
+                },
+                example: {
+                  request:
+                    "Genera una imagen divertida de Condorito tomando once en Pelotillehue con Yayita",
+                  provider: "openai",
+                  model: "gpt-4.1-mini",
+                  agents: ["researcher", "illustrator"],
                 },
               },
             },

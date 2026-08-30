@@ -8,12 +8,23 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 Runner = Callable[..., Any]
 
+_RUN_REQUEST_EXAMPLE = {
+    "request": (
+        "Genera una imagen divertida de Condorito tomando once en Pelotillehue con Yayita"
+    ),
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "agents": ["researcher", "illustrator"],
+}
+
 
 class RunRequest(BaseModel):
+    model_config = ConfigDict(json_schema_extra={"example": _RUN_REQUEST_EXAMPLE})
+
     request: str = Field(..., min_length=1, description="Feature request in Spanish")
     provider: str | None = Field(None, description="openai | deepseek")
     model: str | None = None

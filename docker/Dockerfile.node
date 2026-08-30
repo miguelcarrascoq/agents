@@ -1,0 +1,19 @@
+# Reusable Node lab image. Build from repo root:
+#   docker build -f docker/Dockerfile.node --build-arg LAB=langgraph-typescript .
+FROM node:20-bookworm-slim
+
+ARG LAB=langgraph-typescript
+ENV LAB=${LAB} \
+  HOST=0.0.0.0 \
+  PORT=8000
+
+WORKDIR /workspace/${LAB}
+
+COPY ${LAB}/package.json ${LAB}/package-lock.json ./
+RUN npm ci
+
+COPY ${LAB}/ ./
+
+EXPOSE 8000
+
+CMD ["npm", "run", "serve"]

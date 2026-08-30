@@ -1,3 +1,7 @@
+# Langflow UI only (used by ./run.sh server from langflow-python/).
+# For lab API + Langflow together via Docker, use the repo-root compose:
+#   docker compose --profile langflow-python up --build
+# (see ../../docker/README.md). Paths below are relative to langflow-python/.
 services:
   langflow:
     image: langflowai/langflow:latest

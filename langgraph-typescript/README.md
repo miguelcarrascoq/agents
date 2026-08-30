@@ -8,6 +8,8 @@ Opt-in agents: **Researcher**, **Diagrammer**, **Illustrator**.
 
 ## Setup
 
+Also runnable with Docker only (no local Node): see [docker/README.md](../docker/README.md).
+
 ```bash
 ./run.sh setup
 # or manually:

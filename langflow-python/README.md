@@ -14,6 +14,8 @@ Pipeline multi-agente vía **Langflow UI + REST API**. Mismo contrato que los ot
 
 ## Setup
 
+Full stack in Docker (Langflow UI + lab API): see [docker/README.md](../docker/README.md) (`--profile langflow-python`). Host CLI + Langflow-only container: below.
+
 ```bash
 ./run.sh setup
 # Editar .env: OPENAI_API_KEY (y DEEPSEEK_API_KEY si aplica)

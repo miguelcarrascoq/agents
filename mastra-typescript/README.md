@@ -6,7 +6,7 @@ Opt-in agents: **Researcher**, **Diagrammer**, **Illustrator**.
 
 ## Setup
 
-Requires Node.js **20.6+** (Mastra dependency).
+Requires Node.js **20.6+** (Mastra dependency). Also runnable with Docker only: see [docker/README.md](../docker/README.md).
 
 ```bash
 ./run.sh setup

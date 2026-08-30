@@ -6,6 +6,8 @@ Agentes opt-in: **Researcher**, **Diagrammer**, **Illustrator**.
 
 ## Setup
 
+Also runnable with Docker only (no local Python): see [docker/README.md](../docker/README.md).
+
 ```bash
 ./run.sh setup
 # or manually:

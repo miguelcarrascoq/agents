@@ -1,0 +1,179 @@
+# Feature Delivery Agent Labs — run any lab with Docker only.
+# Usage:
+#   cp langgraph-python/.env.example langgraph-python/.env   # add API keys
+#   docker compose --profile langgraph-python up --build
+#   docker compose --profile langgraph-python run --rm langgraph-python \
+#     python -m app "Agregar autenticación JWT..." --agents planner,designer
+#
+# Only one lab profile at a time (all map host :8000 except Langflow UI on :7860).
+
+x-python-lab: &python-lab
+  build:
+    context: .
+    dockerfile: docker/Dockerfile.python
+  environment:
+    HOST: "0.0.0.0"
+    PORT: "8000"
+  ports:
+    - "8000:8000"
+  stdin_open: true
+  tty: true
+  restart: "no"
+
+x-node-lab: &node-lab
+  build:
+    context: .
+    dockerfile: docker/Dockerfile.node
+  environment:
+    HOST: "0.0.0.0"
+    PORT: "8000"
+  ports:
+    - "8000:8000"
+  stdin_open: true
+  tty: true
+  restart: "no"
+
+services:
+  langgraph-python:
+    <<: *python-lab
+    profiles: ["langgraph-python"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+      args:
+        LAB: langgraph-python
+    env_file:
+      - path: ./langgraph-python/.env
+        required: false
+    volumes:
+      - ./langgraph-python/output:/workspace/langgraph-python/output
+      - ./langgraph-python/knowledge:/workspace/langgraph-python/knowledge:ro
+    working_dir: /workspace/langgraph-python
+
+  crewai-python:
+    <<: *python-lab
+    profiles: ["crewai-python"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+      args:
+        LAB: crewai-python
+    env_file:
+      - path: ./crewai-python/.env
+        required: false
+    volumes:
+      - ./crewai-python/output:/workspace/crewai-python/output
+      - ./crewai-python/knowledge:/workspace/crewai-python/knowledge:ro
+    working_dir: /workspace/crewai-python
+
+  smolagents-python:
+    <<: *python-lab
+    profiles: ["smolagents-python"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+      args:
+        LAB: smolagents-python
+    env_file:
+      - path: ./smolagents-python/.env
+        required: false
+    volumes:
+      - ./smolagents-python/output:/workspace/smolagents-python/output
+      - ./smolagents-python/knowledge:/workspace/smolagents-python/knowledge:ro
+    working_dir: /workspace/smolagents-python
+
+  openai-agents-python:
+    <<: *python-lab
+    profiles: ["openai-agents-python"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+      args:
+        LAB: openai-agents-python
+    env_file:
+      - path: ./openai-agents-python/.env
+        required: false
+    volumes:
+      - ./openai-agents-python/output:/workspace/openai-agents-python/output
+      - ./openai-agents-python/knowledge:/workspace/openai-agents-python/knowledge:ro
+    working_dir: /workspace/openai-agents-python
+
+  langgraph-typescript:
+    <<: *node-lab
+    profiles: ["langgraph-typescript"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+      args:
+        LAB: langgraph-typescript
+    env_file:
+      - path: ./langgraph-typescript/.env
+        required: false
+    volumes:
+      - ./langgraph-typescript/output:/workspace/langgraph-typescript/output
+      - ./langgraph-typescript/knowledge:/workspace/langgraph-typescript/knowledge:ro
+    working_dir: /workspace/langgraph-typescript
+
+  mastra-typescript:
+    <<: *node-lab
+    profiles: ["mastra-typescript"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+      args:
+        LAB: mastra-typescript
+    env_file:
+      - path: ./mastra-typescript/.env
+        required: false
+    volumes:
+      - ./mastra-typescript/output:/workspace/mastra-typescript/output
+      - ./mastra-typescript/knowledge:/workspace/mastra-typescript/knowledge:ro
+    working_dir: /workspace/mastra-typescript
+
+  # Langflow UI (existing public image). Orchestrator is langflow-python below.
+  # Secrets and LANGFLOW_* come from langflow-python/.env (do not interpolate
+  # empty ${VAR:-} here — that would override env_file with blanks).
+  langflow:
+    profiles: ["langflow-python"]
+    image: langflowai/langflow:latest
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./langflow-python/data/langflow:/app/langflow
+      - ./langflow-python/components:/app/custom_components
+      - ./langflow-python/knowledge:/app/knowledge:ro
+      - ./langflow-python/output:/app/output
+      - ./langflow-python/flows:/app/flows:ro
+    environment:
+      LANGFLOW_COMPONENTS_PATH: /app/custom_components
+      LANGFLOW_CONFIG_DIR: /app/langflow
+      LANGFLOW_DATABASE_URL: sqlite:////app/langflow/langflow.db
+      SANDBOX_OUTPUT_ROOT: /app/output
+      SANDBOX_KNOWLEDGE_DIR: /app/knowledge
+    env_file:
+      - path: ./langflow-python/.env
+        required: false
+    restart: unless-stopped
+
+  langflow-python:
+    <<: *python-lab
+    profiles: ["langflow-python"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.python
+      args:
+        LAB: langflow-python
+    depends_on:
+      - langflow
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      # Reach Langflow on the compose network (not localhost).
+      LANGFLOW_URL: http://langflow:7860
+    env_file:
+      - path: ./langflow-python/.env
+        required: false
+    volumes:
+      - ./langflow-python/output:/workspace/langflow-python/output
+      - ./langflow-python/knowledge:/workspace/langflow-python/knowledge:ro
+    working_dir: /workspace/langflow-python

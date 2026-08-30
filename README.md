@@ -50,12 +50,19 @@ Ver [COMPARISON.md](COMPARISON.md) para el patrón recomendado, ranking y qué o
 
 ## Requisitos
 
+**Opción A — Docker (recomendado si no querés instalar runtimes):** Docker Desktop / Engine + Compose v2. Ver [docker/README.md](docker/README.md).
+
+**Opción B — local:**
+
 - Python 3.11+ (proyectos Python)
 - Node.js 20.6+ (proyectos TypeScript; Mastra lo exige)
+- **Langflow lab only:** Docker; `LANGFLOW_API_KEY` se genera en setup/server (ver [langflow-python](langflow-python/))
+
+En ambos casos:
+
 - API key de **OpenAI** y/o **DeepSeek**
 - Búsqueda web: DuckDuckGo (sin API key extra)
 - Imágenes (illustrator): `OPENAI_API_KEY` aunque el LLM use DeepSeek
-- **Langflow lab only:** Docker; `LANGFLOW_API_KEY` se genera en setup/server (ver [langflow-python](langflow-python/))
 
 ## Clone y setup
 
@@ -67,6 +74,19 @@ cd agents
 Copia `.env.example` → `.env` en el lab que vayas a usar (o deja que `./run.sh setup` lo haga).
 
 **Secretos:** API keys y passwords van solo en `.env` local (gitignored). Nunca los commitees ni subas un zip del working tree. Los defaults de Langflow (`changeme-dev`, `AUTO_LOGIN=true`) son solo para lab local, no para un server expuesto.
+
+### Run with Docker
+
+```bash
+cp langgraph-python/.env.example langgraph-python/.env   # agregar API keys
+docker compose --profile langgraph-python up --build     # API en :8000
+docker compose --profile langgraph-python run --rm langgraph-python \
+  python -m app "Agregar autenticación JWT..." --agents planner,designer
+```
+
+Detalle (todos los labs, Langflow, TypeScript): [docker/README.md](docker/README.md).
+
+### Run local (`./run.sh`)
 
 ```bash
 cd langgraph-python

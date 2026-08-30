@@ -59,6 +59,10 @@ Yes, but **thin and purposeful**:
 
 Phases stay decoupled via **artifacts on disk**, not opaque chat memory: run one agent alone when prerequisites exist, or chain the same set in order (with loops where the graph defines them).
 
+## Docker (all labs)
+
+Same pipeline without local Python/Node: from the repo root, `docker compose --profile <lab> up --build` or `run --rm …`. Details: [docker/README.md](docker/README.md). Equivalent to `./run.sh serve` / CLI for comparing frameworks.
+
 ## `./run.sh` (all labs)
 
 Same interface in every project folder:

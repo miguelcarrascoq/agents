@@ -23,7 +23,7 @@ Monorepo con **7 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Salida:** `output/<run_id>/` con `research.md`, `plan.md`, `design.md`, `diagrams/*.mmd`, `assets/*.png`, `src/**`, `review.md`, `summary.json`
 
-Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Luego puedes envolverla en HTTP (FastAPI / Hono) sin reescribir el pipeline.
+Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Cada lab también expone HTTP: `./run.sh serve` → `POST /runs` + Swagger en `/docs` (FastAPI en Python, Hono en TypeScript).
 
 Ejecutar solo algunos agentes:
 
@@ -73,6 +73,7 @@ cd langgraph-python
 ./run.sh setup          # venv + pip install + .env
 ./run.sh                # wizard interactivo (default)
 ./run.sh --help         # flags disponibles
+./run.sh serve          # HTTP API + Swagger en http://127.0.0.1:8000/docs
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ./run.sh "Agregar autenticación JWT..." --agents researcher,planner,designer,diagrammer
 ./run.sh "genera una imagen del presidente actual de chile" --agents researcher,illustrator
@@ -83,6 +84,15 @@ Cada lab incluye su propio `./run.sh` con la misma interfaz (Python o Node por d
 ```bash
 python -m app "Agregar autenticación JWT..." --agents planner,designer
 npm start -- "Agregar autenticación JWT..." --agents planner,designer
+```
+
+HTTP (mismo contrato en todos los labs):
+
+```bash
+./run.sh serve
+curl -s -X POST http://127.0.0.1:8000/runs \
+  -H 'Content-Type: application/json' \
+  -d '{"request":"Agregar autenticación JWT...","agents":["planner","designer"]}'
 ```
 
 ## Idioma

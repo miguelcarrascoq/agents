@@ -20,6 +20,7 @@ cp .env.example .env
 ```bash
 ./run.sh              # interactive wizard (inquirer)
 ./run.sh --help
+./run.sh serve        # HTTP API + Swagger UI
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ```
 
@@ -57,9 +58,18 @@ const result = await runFeatureDelivery("Agregar autenticación JWT...", {
 });
 ```
 
-## Next: HTTP API
+## HTTP API
 
-Wrap `runFeatureDelivery` with Hono/Express (`POST /runs`).
+```bash
+./run.sh serve
+# UI interactiva (Swagger): http://127.0.0.1:8000/docs
+curl -s http://127.0.0.1:8000/health
+curl -s -X POST http://127.0.0.1:8000/runs \
+  -H 'Content-Type: application/json' \
+  -d '{"request":"Agregar autenticación JWT...","agents":["planner","designer"]}'
+```
+
+Env: `HOST` / `PORT` (default `127.0.0.1:8000`).
 
 ## Mental model
 

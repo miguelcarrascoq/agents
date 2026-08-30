@@ -13,6 +13,7 @@ dependencies = [
   "ddgs>=9.0.0",
   "openai>=1.0.0",
   "feature-delivery-tui @ file:../shared/feature-delivery-tui",
+  "feature-delivery-api @ file:../shared/feature-delivery-api",
 ]
 
 [project.scripts]

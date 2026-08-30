@@ -11,9 +11,13 @@ cd "$ROOT"
 
 usage() {
   cat <<EOF
-Usage: ./run.sh [setup | --help | -h | --interactive | -i] ["<feature en español>"] [options]
+Usage: ./run.sh [setup | serve | --help | -h | --interactive | -i] ["<feature en español>"] [options]
 
 Project: ${PROJECT_NAME}
+
+Commands:
+  setup             install deps + .env
+  serve             HTTP API (Swagger UI at http://127.0.0.1:8000/docs)
 
 Options (passed to pipeline):
   --provider openai|deepseek
@@ -29,6 +33,7 @@ EOF
 Examples:
   ./run.sh
   ./run.sh setup
+  ./run.sh serve
   ./run.sh "Agregar autenticación JWT..." --agents planner,designer
   ./run.sh --interactive
 EOF
@@ -42,6 +47,12 @@ cmd_setup() {
     # shellcheck source=/dev/null
     source .venv/bin/activate
     pip install -e .
+    if [[ -d ../shared/feature-delivery-tui ]]; then
+      pip install -e ../shared/feature-delivery-tui --force-reinstall
+    fi
+    if [[ -d ../shared/feature-delivery-api ]]; then
+      pip install -e ../shared/feature-delivery-api --force-reinstall
+    fi
   else
     npm install
   fi
@@ -74,10 +85,22 @@ run_app() {
   fi
 }
 
+run_serve() {
+  ensure_ready
+  shift
+  if [[ "$RUN_KIND" == "python" ]]; then
+    exec python -m app.api "$@"
+  else
+    exec npm run serve -- "$@"
+  fi
+}
+
 if [[ $# -eq 0 ]]; then
   run_app --interactive
 elif [[ "$1" == "setup" ]]; then
   cmd_setup
+elif [[ "$1" == "serve" ]]; then
+  run_serve "$@"
 elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
   usage
 else

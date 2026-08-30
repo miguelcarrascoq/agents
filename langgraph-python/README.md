@@ -21,6 +21,7 @@ cp .env.example .env  # add OPENAI_API_KEY and/or DEEPSEEK_API_KEY
 ```bash
 ./run.sh              # interactive wizard (default)
 ./run.sh --help       # flags and examples
+./run.sh serve        # HTTP API + Swagger UI
 ./run.sh "Agregar autenticación JWT a una API de todos con refresh tokens"
 ```
 
@@ -60,16 +61,18 @@ result = run_feature_delivery(
 print(result.output_dir)
 ```
 
-## Next: HTTP API
+## HTTP API
 
-Wrap `run_feature_delivery` with FastAPI:
-
-```python
-# sketch only — not shipped in v1
-@app.post("/runs")
-def create_run(body: { "request": str }):
-    return run_feature_delivery(body["request"])
+```bash
+./run.sh serve
+# UI interactiva (Swagger): http://127.0.0.1:8000/docs
+curl -s http://127.0.0.1:8000/health
+curl -s -X POST http://127.0.0.1:8000/runs \
+  -H 'Content-Type: application/json' \
+  -d '{"request":"Agregar autenticación JWT...","agents":["planner","designer"]}'
 ```
+
+Flags del servidor: `--host`, `--port` (o env `HOST` / `PORT`).
 
 ## Mental model
 

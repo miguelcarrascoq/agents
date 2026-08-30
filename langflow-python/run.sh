@@ -10,7 +10,7 @@ cd "$ROOT"
 
 usage() {
   cat <<EOF
-Usage: ./run.sh [setup | server | bootstrap-flows | --help | -h | --interactive | -i] ["<feature en español>"] [options]
+Usage: ./run.sh [setup | server | serve | bootstrap-flows | --help | -h | --interactive | -i] ["<feature en español>"] [options]
 
 Project: ${PROJECT_NAME} (Langflow UI + REST API)
 
@@ -18,6 +18,7 @@ Commands:
   setup             venv + pip install + .env (+ auto Langflow keys)
   server            start Langflow, wait healthy, bootstrap flows if needed
   server-stop       stop Langflow container
+  serve             lab HTTP API (Swagger at http://127.0.0.1:8000/docs; distinct from Langflow :7860)
   bootstrap-flows   upload flows/*.json and write flows/flow_ids.json
   generate-flows    regenerate flows/*.json templates
 
@@ -30,6 +31,7 @@ Options (passed to pipeline):
 Examples:
   ./run.sh setup
   ./run.sh server
+  ./run.sh serve
   ./run.sh bootstrap-flows
   ./run.sh
   ./run.sh "Agregar autenticación JWT..." --agents planner,designer
@@ -130,6 +132,7 @@ cmd_setup() {
   source .venv/bin/activate
   pip install -e .
   pip install -e ../shared/feature-delivery-tui --force-reinstall
+  pip install -e ../shared/feature-delivery-api --force-reinstall
   if [[ ! -f .env ]] && [[ -f .env.example ]]; then
     cp .env.example .env
     echo "Created .env from .env.example — edit OPENAI_API_KEY (and other LLM keys)."
@@ -151,6 +154,10 @@ ensure_ready() {
   if ! python -c "from InquirerPy import inquirer" 2>/dev/null; then
     echo "Updating interactive wizard (InquirerPy)…" >&2
     pip install -e ../shared/feature-delivery-tui --force-reinstall -q
+  fi
+  if ! python -c "from feature_delivery_api import serve" 2>/dev/null; then
+    echo "Updating HTTP API package…" >&2
+    pip install -e ../shared/feature-delivery-api --force-reinstall -q
   fi
 }
 
@@ -238,6 +245,17 @@ run_app() {
   exec python -m app "$@"
 }
 
+run_serve() {
+  ensure_ready
+  # shellcheck disable=SC1091
+  set -a
+  # shellcheck source=/dev/null
+  source .env
+  set +a
+  shift
+  exec python -m app.api "$@"
+}
+
 if [[ $# -eq 0 ]]; then
   run_app --interactive
 elif [[ "$1" == "setup" ]]; then
@@ -246,6 +264,8 @@ elif [[ "$1" == "server" ]]; then
   cmd_server
 elif [[ "$1" == "server-stop" ]]; then
   cmd_server_stop
+elif [[ "$1" == "serve" ]]; then
+  run_serve "$@"
 elif [[ "$1" == "bootstrap-flows" ]]; then
   cmd_bootstrap_flows
 elif [[ "$1" == "generate-flows" ]]; then

@@ -10,9 +10,13 @@ cd "$ROOT"
 
 usage() {
   cat <<EOF
-Usage: ./run.sh [setup | --help | -h | --interactive | -i] ["<feature en español>"] [options]
+Usage: ./run.sh [setup | serve | --help | -h | --interactive | -i] ["<feature en español>"] [options]
 
 Project: ${PROJECT_NAME}
+
+Commands:
+  setup             venv + pip install + .env
+  serve             HTTP API (Swagger UI at http://127.0.0.1:8000/docs)
 
 Options (passed to pipeline):
   --provider openai|deepseek
@@ -24,6 +28,7 @@ Options (passed to pipeline):
 Examples:
   ./run.sh
   ./run.sh setup
+  ./run.sh serve
   ./run.sh "Agregar autenticación JWT..." --agents planner,designer --quiet
 EOF
 }
@@ -37,6 +42,7 @@ cmd_setup() {
   # Install lab first, then force editable wizard so pip does not leave a stale Textual copy.
   pip install -e .
   pip install -e ../shared/feature-delivery-tui --force-reinstall
+  pip install -e ../shared/feature-delivery-api --force-reinstall
   if [[ ! -f .env ]] && [[ -f .env.example ]]; then
     cp .env.example .env
     echo "Created .env from .env.example — edit your API keys."
@@ -55,6 +61,10 @@ ensure_ready() {
     echo "Updating interactive wizard (InquirerPy)…" >&2
     pip install -e ../shared/feature-delivery-tui --force-reinstall -q
   fi
+  if ! python -c "from feature_delivery_api import serve" 2>/dev/null; then
+    echo "Updating HTTP API package…" >&2
+    pip install -e ../shared/feature-delivery-api --force-reinstall -q
+  fi
 }
 
 run_app() {
@@ -62,10 +72,18 @@ run_app() {
   exec python -m app "$@"
 }
 
+run_serve() {
+  ensure_ready
+  shift
+  exec python -m app.api "$@"
+}
+
 if [[ $# -eq 0 ]]; then
   run_app --interactive
 elif [[ "$1" == "setup" ]]; then
   cmd_setup
+elif [[ "$1" == "serve" ]]; then
+  run_serve "$@"
 elif [[ "$1" == "--help" || "$1" == "-h" ]]; then
   usage
 else

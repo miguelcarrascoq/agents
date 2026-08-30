@@ -10,6 +10,7 @@ Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarr
 |------|-----|
 | `langgraph-python/`, `crewai-python/`, … | Labs (cada uno con su `./run.sh`) |
 | [`shared/feature-delivery-tui/`](shared/feature-delivery-tui/) | TUI interactiva compartida (labs Python) |
+| [`shared/feature-delivery-ui/`](shared/feature-delivery-ui/) | UI web abierta (React+Vite) servida en `/` |
 | [`knowledge-source/`](knowledge-source/) | Docs de conocimiento canónicos |
 | `*/knowledge/` | Copia local por lab (usada en runtime) |
 
@@ -23,7 +24,7 @@ Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Salida:** `output/<run_id>/` con `research.md`, `plan.md`, `design.md`, `diagrams/*.mmd`, `assets/*.png`, `src/**`, `review.md`, `summary.json`
 
-Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Cada lab también expone HTTP: `./run.sh serve` → `POST /runs` + Swagger en `/docs` (FastAPI en Python, Hono en TypeScript).
+Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Cada lab también expone HTTP **sin autenticación**: `./run.sh serve` → UI abierta en [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/), `POST /runs`, y Swagger en `/docs` (FastAPI en Python, Hono en TypeScript).
 
 Ejecutar solo algunos agentes:
 

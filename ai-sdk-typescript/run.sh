@@ -25,6 +25,9 @@ ensure_node() {
 }
 ensure_node
 
+# shellcheck source=/dev/null
+source "${ROOT}/../shared/scripts/ensure-ui.sh"
+
 usage() {
   cat <<EOF
 Usage: ./run.sh [setup | serve | --help | -h | --interactive | -i] ["<feature en español>"] [options]
@@ -33,7 +36,7 @@ Project: ${PROJECT_NAME}
 
 Commands:
   setup             npm install + .env
-  serve             HTTP API (Swagger UI at http://127.0.0.1:8000/docs)
+  serve             open UI + API (http://127.0.0.1:8000/  ·  /docs)
 
 Options (passed to pipeline):
   --provider openai|deepseek
@@ -55,6 +58,7 @@ cmd_setup() {
     cp .env.example .env
     echo "Created .env from .env.example — edit your API keys."
   fi
+  ensure_feature_delivery_ui || true
 }
 
 ensure_ready() {
@@ -71,6 +75,7 @@ run_app() {
 
 run_serve() {
   ensure_ready
+  ensure_feature_delivery_ui || true
   shift
   exec npm run serve -- "$@"
 }

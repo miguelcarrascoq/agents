@@ -8,6 +8,9 @@ SUPPORTS_QUIET="false"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
+# shellcheck source=/dev/null
+source "${ROOT}/../shared/scripts/ensure-ui.sh"
+
 usage() {
   cat <<EOF
 Usage: ./run.sh [setup | server | serve | bootstrap-flows | --help | -h | --interactive | -i] ["<feature en español>"] [options]
@@ -18,7 +21,7 @@ Commands:
   setup             venv + pip install + .env (+ auto Langflow keys)
   server            start Langflow, wait healthy, bootstrap flows if needed
   server-stop       stop Langflow container
-  serve             lab HTTP API (Swagger at http://127.0.0.1:8000/docs; distinct from Langflow :7860)
+  serve             open lab UI + API (http://127.0.0.1:8000/; distinct from Langflow :7860)
   bootstrap-flows   upload flows/*.json and write flows/flow_ids.json
   generate-flows    regenerate flows/*.json templates
 
@@ -142,6 +145,7 @@ cmd_setup() {
     echo "Note: ./run.sh server will upload flows and write flow_ids.json on first start."
   fi
   mkdir -p output knowledge data/langflow
+  ensure_feature_delivery_ui || true
 }
 
 ensure_ready() {
@@ -247,6 +251,7 @@ run_app() {
 
 run_serve() {
   ensure_ready
+  ensure_feature_delivery_ui || true
   # shellcheck disable=SC1091
   set -a
   # shellcheck source=/dev/null

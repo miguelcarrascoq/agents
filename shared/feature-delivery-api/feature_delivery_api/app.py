@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
 Runner = Callable[..., Any]
@@ -40,25 +42,38 @@ class RunRequest(BaseModel):
     )
 
 
+def _ui_dist_dir() -> Path | None:
+    """Resolve shared/feature-delivery-ui/dist if the UI has been built."""
+    # feature_delivery_api/app.py → shared/feature-delivery-ui/dist
+    candidate = Path(__file__).resolve().parents[2] / "feature-delivery-ui" / "dist"
+    if (candidate / "index.html").is_file():
+        return candidate
+    env = os.environ.get("FEATURE_DELIVERY_UI_DIST")
+    if env:
+        path = Path(env)
+        if (path / "index.html").is_file():
+            return path
+    return None
+
+
 def create_app(
     *,
     runner: Runner,
     project_id: str,
     supports_quiet: bool = False,
 ) -> FastAPI:
-    """Build a FastAPI app that exposes GET /health and POST /runs."""
+    """Build a FastAPI app that exposes GET /health and POST /runs.
+
+    Open access: no authentication on UI or API routes.
+    """
     app = FastAPI(
         title=f"Feature Delivery — {project_id}",
         description=(
             "HTTP wrapper around `run_feature_delivery`. "
-            "Interactive docs: `/docs` (Swagger) and `/redoc`."
+            "Open UI at `/`; Swagger at `/docs`. No authentication."
         ),
         version="0.1.0",
     )
-
-    @app.get("/", include_in_schema=False)
-    def root() -> RedirectResponse:
-        return RedirectResponse(url="/docs")
 
     @app.get("/health")
     def health() -> dict[str, Any]:
@@ -86,6 +101,26 @@ def create_app(
         if isinstance(result, dict):
             return result
         raise HTTPException(status_code=500, detail="Unexpected runner result type")
+
+    ui_dist = _ui_dist_dir()
+    if ui_dist is not None:
+        index_html = ui_dist / "index.html"
+        assets_dir = ui_dist / "assets"
+        if assets_dir.is_dir():
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="ui-assets")
+
+        @app.get("/", include_in_schema=False)
+        def ui_root() -> FileResponse:
+            return FileResponse(index_html)
+    else:
+
+        @app.get("/", include_in_schema=False)
+        def root_fallback() -> dict[str, str]:
+            return {
+                "message": "UI not built. Run: npm install && npm run build "
+                "in shared/feature-delivery-ui — or open /docs",
+                "docs": "/docs",
+            }
 
     return app
 
@@ -122,5 +157,8 @@ def serve(
         project_id=project_id,
         supports_quiet=supports_quiet,
     )
+    ui = _ui_dist_dir()
+    if ui:
+        print(f"UI:         http://{bind_host}:{bind_port}/")
     print(f"Swagger UI: http://{bind_host}:{bind_port}/docs")
     uvicorn.run(app, host=bind_host, port=bind_port)

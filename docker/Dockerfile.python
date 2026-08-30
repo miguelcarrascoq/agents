@@ -1,5 +1,13 @@
 # Reusable Python lab image. Build from repo root:
 #   docker build -f docker/Dockerfile.python --build-arg LAB=langgraph-python .
+FROM node:20-bookworm-slim AS ui
+
+WORKDIR /ui
+COPY shared/feature-delivery-ui/package.json shared/feature-delivery-ui/package-lock.json ./
+RUN npm ci
+COPY shared/feature-delivery-ui/ ./
+RUN npm run build
+
 FROM python:3.12-slim
 
 RUN apt-get update \
@@ -16,6 +24,7 @@ ENV LAB=${LAB} \
 WORKDIR /workspace
 
 COPY shared/ /workspace/shared/
+COPY --from=ui /ui/dist /workspace/shared/feature-delivery-ui/dist
 COPY ${LAB}/ /workspace/${LAB}/
 
 WORKDIR /workspace/${LAB}

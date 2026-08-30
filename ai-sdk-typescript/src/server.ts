@@ -1,12 +1,18 @@
 /**
- * HTTP API for feature-delivery lab (Hono + Swagger UI).
- * POST /runs wraps runFeatureDelivery; docs at /docs.
+ * HTTP API for feature-delivery lab (Hono + open UI + Swagger).
+ * No authentication — UI and API are open.
+ * POST /runs wraps runFeatureDelivery; UI at /; docs at /docs.
  */
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 
+import { resolveUiDist } from "../../shared/feature-delivery-ui/resolve-ui-dist.mjs";
 import { runFeatureDelivery } from "./pipeline.js";
 
 const PROJECT_ID = "ai-sdk-typescript";
@@ -25,7 +31,7 @@ const openApiDoc = {
     title: `Feature Delivery — ${PROJECT_ID}`,
     version: "0.1.0",
     description:
-      "HTTP wrapper around `runFeatureDelivery`. Use Try it out on POST /runs.",
+      "Open HTTP wrapper around `runFeatureDelivery` (no auth). UI at `/`; Swagger at `/docs`.",
   },
   paths: {
     "/health": {
@@ -128,8 +134,6 @@ const openApiDoc = {
 
 const app = new Hono();
 
-app.get("/", (c) => c.redirect("/docs"));
-
 app.get("/health", (c) => c.json({ ok: true, project: PROJECT_ID }));
 
 app.get("/openapi.json", (c) => c.json(openApiDoc));
@@ -161,8 +165,30 @@ app.post("/runs", async (c) => {
   }
 });
 
+const uiDist = resolveUiDist(import.meta.url);
+if (uiDist) {
+  app.use(
+    "/assets/*",
+    serveStatic({
+      root: uiDist,
+      rewriteRequestPath: (p) => p,
+    }),
+  );
+  const indexHtml = readFileSync(path.join(uiDist, "index.html"), "utf8");
+  app.get("/", (c) => c.html(indexHtml));
+} else {
+  app.get("/", (c) =>
+    c.json({
+      message:
+        "UI not built. Run npm install && npm run build in shared/feature-delivery-ui",
+      docs: "/docs",
+    }),
+  );
+}
+
 const host = process.env.HOST ?? "127.0.0.1";
 const port = Number(process.env.PORT ?? "8000");
 
+if (uiDist) console.log(`UI:         http://${host}:${port}/`);
 console.log(`Swagger UI: http://${host}:${port}/docs`);
 serve({ fetch: app.fetch, hostname: host, port });

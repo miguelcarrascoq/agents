@@ -1,11 +1,24 @@
 # Reusable Node lab image. Build from repo root:
 #   docker build -f docker/Dockerfile.node --build-arg LAB=langgraph-typescript .
+FROM node:20-bookworm-slim AS ui
+
+WORKDIR /ui
+COPY shared/feature-delivery-ui/package.json shared/feature-delivery-ui/package-lock.json ./
+RUN npm ci
+COPY shared/feature-delivery-ui/ ./
+RUN npm run build
+
 FROM node:20-bookworm-slim
 
 ARG LAB=langgraph-typescript
 ENV LAB=${LAB} \
   HOST=0.0.0.0 \
   PORT=8000
+
+WORKDIR /workspace
+
+COPY shared/feature-delivery-ui/resolve-ui-dist.mjs /workspace/shared/feature-delivery-ui/
+COPY --from=ui /ui/dist /workspace/shared/feature-delivery-ui/dist
 
 WORKDIR /workspace/${LAB}
 

@@ -584,7 +584,11 @@ export default function App() {
               ).map(
                 ([key, value]) =>
                   value && (
-                    <details key={key} className="artifact" open={key === "plan"}>
+                    <details
+                      key={key}
+                      className="artifact"
+                      open={key === "plan" || key === "design"}
+                    >
                       <summary>{key}.md</summary>
                       <MarkdownArtifact html={renderMarkdown(value)} />
                     </details>

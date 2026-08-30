@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import mermaid from "mermaid";
 
 let mermaidReady = false;
+let renderSeq = 0;
 
 function ensureMermaid(): void {
   if (mermaidReady) return;
@@ -27,29 +28,52 @@ type Props = {
   html: string;
 };
 
-/** Renders markdown HTML and runs Mermaid on any `.mermaid` blocks. */
+async function paintMermaid(root: HTMLElement, signal: { cancelled: boolean }) {
+  ensureMermaid();
+  const nodes = root.querySelectorAll<HTMLElement>(".mermaid");
+  for (const node of nodes) {
+    if (signal.cancelled) return;
+    if (node.querySelector("svg")) continue;
+
+    const raw = sanitizeMermaidSource(node.textContent ?? "");
+    if (!raw) continue;
+
+    try {
+      const id = `mmd-${++renderSeq}`;
+      const { svg } = await mermaid.render(id, raw);
+      if (signal.cancelled) return;
+      node.innerHTML = svg;
+    } catch {
+      if (signal.cancelled) return;
+      // Keep source readable if parse fails (div whitespace would otherwise collapse).
+      node.textContent = raw;
+      node.dataset.mermaidError = "1";
+    }
+  }
+}
+
+/** Renders markdown HTML and paints Mermaid diagrams as SVG. */
 export function MarkdownArtifact({ html }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const nodes = root.querySelectorAll<HTMLElement>(".mermaid");
-    if (!nodes.length) return;
 
-    for (const node of nodes) {
-      // Skip already-rendered diagrams (contain SVG, no source text).
-      if (node.querySelector("svg")) continue;
-      const raw = node.textContent ?? "";
-      const cleaned = sanitizeMermaidSource(raw);
-      if (cleaned !== raw) node.textContent = cleaned;
-    }
+    const signal = { cancelled: false };
+    void paintMermaid(root, signal);
 
-    ensureMermaid();
-    void mermaid.run({
-      nodes: Array.from(nodes).filter((n) => !n.querySelector("svg")),
-      suppressErrors: true,
-    });
+    const details = root.closest("details");
+    const onToggle = () => {
+      if (!details?.open) return;
+      void paintMermaid(root, signal);
+    };
+    details?.addEventListener("toggle", onToggle);
+
+    return () => {
+      signal.cancelled = true;
+      details?.removeEventListener("toggle", onToggle);
+    };
   }, [html]);
 
   return (

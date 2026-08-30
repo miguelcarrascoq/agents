@@ -868,6 +868,17 @@
   margin: 0.75rem 0;
   overflow-x: auto;
   text-align: center;
+  /* Before SVG paint (or on parse error), keep newlines visible. */
+  white-space: pre-wrap;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.md .mermaid:has(svg) {
+  font-family: inherit;
+  font-size: inherit;
+  white-space: normal;
 }
 
 .md .mermaid svg {

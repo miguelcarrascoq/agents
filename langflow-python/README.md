@@ -45,7 +45,7 @@ Datos de Langflow (DB, flows en UI) viven en `data/langflow/` y **persisten** en
 ./run.sh "genera una imagen del presidente actual de chile" --agents researcher,illustrator
 ```
 
-Flags: `--provider openai|deepseek`, `--model`, `--run-id`, `--agents`, `-i`
+Flags: `--provider openai|deepseek|openrouter`, `--model`, `--run-id`, `--agents`, `-i`
 
 ## Arquitectura
 

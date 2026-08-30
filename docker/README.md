@@ -18,7 +18,7 @@ Root compose file: [`../docker-compose.yml`](../docker-compose.yml). Images: [`D
 ```bash
 # from repo root
 cp langgraph-python/.env.example langgraph-python/.env
-# edit .env → OPENAI_API_KEY and/or DEEPSEEK_API_KEY
+# edit .env → OPENAI_API_KEY and/or DEEPSEEK_API_KEY / OPENROUTER_API_KEY
 
 # HTTP API + open UI (http://127.0.0.1:8000/) + Swagger (/docs)
 docker compose --profile langgraph-python up --build

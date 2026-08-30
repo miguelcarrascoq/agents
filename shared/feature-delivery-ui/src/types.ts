@@ -27,7 +27,7 @@ export const AGENT_META: Record<AgentName, { name: string; hint: string }> = {
   reviewer: { name: "Reviewer", hint: "review.md" },
 };
 
-export type Provider = "openai" | "deepseek";
+export type Provider = "openai" | "deepseek" | "openrouter";
 
 export type RunFormState = {
   request: string;

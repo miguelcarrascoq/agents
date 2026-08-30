@@ -15,6 +15,28 @@ export const MODEL_OPTIONS: Record<Provider, readonly ModelOption[]> = {
     { id: "deepseek-chat", label: "deepseek-chat", hint: "código / coste" },
     { id: "deepseek-reasoner", label: "deepseek-reasoner", hint: "razonamiento" },
   ],
+  openrouter: [
+    {
+      id: "google/gemini-2.0-flash-001",
+      label: "gemini-2.0-flash",
+      hint: "muy barato / rápido",
+    },
+    {
+      id: "qwen/qwen-2.5-coder-32b-instruct",
+      label: "qwen-2.5-coder-32b",
+      hint: "código económico",
+    },
+    {
+      id: "meta-llama/llama-3.3-70b-instruct",
+      label: "llama-3.3-70b",
+      hint: "general sólido",
+    },
+    {
+      id: "openai/gpt-4.1-mini",
+      label: "gpt-4.1-mini (via OR)",
+      hint: "barato vía OpenRouter",
+    },
+  ],
 } as const;
 
 export function modelsFor(provider: Provider): readonly ModelOption[] {

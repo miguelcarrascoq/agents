@@ -26,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=["openai", "deepseek"],
+        choices=["openai", "deepseek", "openrouter"],
         default=None,
         help="LLM provider (default: LLM_PROVIDER or openai)",
     )

@@ -71,14 +71,18 @@ export async function runInteractive(projectId: string): Promise<number> {
       validate: (value) => (value.trim() ? true : "Required"),
     });
 
+    const envProvider = process.env.LLM_PROVIDER;
     const defaultProvider =
-      process.env.LLM_PROVIDER === "deepseek" ? "deepseek" : "openai";
+      envProvider === "deepseek" || envProvider === "openrouter"
+        ? envProvider
+        : "openai";
 
     const provider = await select({
       message: "Provider",
       choices: [
         { name: "openai", value: "openai" },
         { name: "deepseek", value: "deepseek" },
+        { name: "openrouter", value: "openrouter" },
       ],
       default: defaultProvider,
     });

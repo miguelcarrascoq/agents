@@ -29,7 +29,7 @@ class RunRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={"example": _RUN_REQUEST_EXAMPLE})
 
     request: str = Field(..., min_length=1, description="Feature request in Spanish")
-    provider: str | None = Field(None, description="openai | deepseek")
+    provider: str | None = Field(None, description="openai | deepseek | openrouter")
     model: str | None = None
     run_id: str | None = Field(None, description="Resume from an existing sandbox run")
     agents: str | list[str] | None = Field(

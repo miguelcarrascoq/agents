@@ -26,7 +26,7 @@ Commands:
   generate-flows    regenerate flows/*.json templates
 
 Options (passed to pipeline):
-  --provider openai|deepseek
+  --provider openai|deepseek|openrouter
   --model NAME
   --run-id ID
   --agents researcher,planner,designer,diagrammer,illustrator,coder,reviewer

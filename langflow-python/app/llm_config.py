@@ -1,4 +1,4 @@
-"""LLM provider configuration (OpenAI + DeepSeek OpenAI-compatible)."""
+"""LLM provider configuration (OpenAI + DeepSeek + OpenRouter)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 
 @dataclass(frozen=True)
@@ -25,8 +26,10 @@ def resolve_llm_settings(
     model: str | None = None,
 ) -> LLMSettings:
     provider = (provider or os.getenv("LLM_PROVIDER") or "openai").lower().strip()
-    if provider not in {"openai", "deepseek"}:
-        raise ValueError(f"Unsupported provider: {provider}. Use openai|deepseek.")
+    if provider not in {"openai", "deepseek", "openrouter"}:
+        raise ValueError(
+            f"Unsupported provider: {provider}. Use openai|deepseek|openrouter."
+        )
 
     if provider == "openai":
         api_key = os.getenv("OPENAI_API_KEY", "")
@@ -40,13 +43,25 @@ def resolve_llm_settings(
             base_url=None,
         )
 
-    api_key = os.getenv("DEEPSEEK_API_KEY", "")
+    if provider == "deepseek":
+        api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        if not api_key:
+            raise ValueError("DEEPSEEK_API_KEY is required when provider=deepseek")
+        default_model = os.getenv("MODEL") or "deepseek-chat"
+        return LLMSettings(
+            provider=provider,
+            model=model or default_model,
+            api_key=api_key,
+            base_url=DEEPSEEK_BASE_URL,
+        )
+
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
     if not api_key:
-        raise ValueError("DEEPSEEK_API_KEY is required when provider=deepseek")
-    default_model = os.getenv("MODEL") or "deepseek-chat"
+        raise ValueError("OPENROUTER_API_KEY is required when provider=openrouter")
+    default_model = os.getenv("MODEL") or "google/gemini-2.0-flash-001"
     return LLMSettings(
         provider=provider,
         model=model or default_model,
         api_key=api_key,
-        base_url=DEEPSEEK_BASE_URL,
+        base_url=OPENROUTER_BASE_URL,
     )

@@ -24,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Launch interactive wizard (default when request is omitted)",
     )
-    parser.add_argument("--provider", choices=["openai", "deepseek"], default=None)
+    parser.add_argument("--provider", choices=["openai", "deepseek", "openrouter"], default=None)
     parser.add_argument("--model", default=None)
     parser.add_argument("--run-id", default=None)
     parser.add_argument(

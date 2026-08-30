@@ -93,12 +93,12 @@ def run_interactive(
         request = str(request).strip()
 
         default_provider = os.environ.get("LLM_PROVIDER", "openai")
-        if default_provider not in ("openai", "deepseek"):
+        if default_provider not in ("openai", "deepseek", "openrouter"):
             default_provider = "openai"
 
         provider = inquirer.select(
             message="Provider:",
-            choices=["openai", "deepseek"],
+            choices=["openai", "deepseek", "openrouter"],
             default=default_provider,
             amark="✓",
             keybindings=_CANCEL_KEYS,

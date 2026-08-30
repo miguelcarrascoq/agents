@@ -23,7 +23,7 @@ Commands:
   serve             open UI + API (http://127.0.0.1:8000/  ·  /docs)
 
 Options (passed to pipeline):
-  --provider openai|deepseek
+  --provider openai|deepseek|openrouter
   --model NAME
   --run-id ID
   --agents researcher,planner,designer,diagrammer,illustrator,coder,reviewer

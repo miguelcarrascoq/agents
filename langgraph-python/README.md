@@ -52,7 +52,7 @@ python -m app "genera una imagen del presidente actual de chile" --agents resear
 python -m app "Agregar autenticación JWT..." --run-id abc123 --agents coder,reviewer
 ```
 
-Flags: `--provider openai|deepseek`, `--model`, `--run-id`, `--agents`, `-i` / `--interactive`
+Flags: `--provider openai|deepseek|openrouter`, `--model`, `--run-id`, `--agents`, `-i` / `--interactive`
 
 ## Understanding output
 

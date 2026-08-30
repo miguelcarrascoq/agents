@@ -250,6 +250,7 @@ export default function App() {
               >
                 <option value="openai">openai</option>
                 <option value="deepseek">deepseek</option>
+                <option value="openrouter">openrouter</option>
               </select>
             </label>
             <label className="field">
@@ -273,7 +274,8 @@ export default function App() {
               {form.agents.includes("illustrator") ? (
                 <p className="field-hint">
                   Las imágenes usan OpenAI <code>gpt-image-1</code> (requiere{" "}
-                  <code>OPENAI_API_KEY</code>), aunque el chat sea DeepSeek.
+                  <code>OPENAI_API_KEY</code>), aunque el chat sea DeepSeek u
+                  OpenRouter.
                 </p>
               ) : null}
             </label>

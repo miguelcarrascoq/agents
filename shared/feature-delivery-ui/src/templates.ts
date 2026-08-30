@@ -128,6 +128,19 @@ export const TEMPLATES: Template[] = [
     },
   },
   {
+    id: "crud-openrouter",
+    title: "CRUD vía OpenRouter",
+    blurb: "Código económico (Qwen coder)",
+    form: {
+      request:
+        "Diseñar e implementar un CRUD de productos con categorías, paginación, filtros por precio y validación de entrada.",
+      provider: "openrouter",
+      model: "qwen/qwen-2.5-coder-32b-instruct",
+      agents: [...DEFAULT_AGENTS],
+      runId: "",
+    },
+  },
+  {
     id: "onboarding",
     title: "Onboarding flow",
     blurb: "Design + mockups",

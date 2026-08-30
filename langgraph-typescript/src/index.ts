@@ -24,7 +24,7 @@ function parseArgs(argv: string[]) {
     else if (a === "--interactive" || a === "-i") out.interactive = true;
     else if (a === "--help" || a === "-h") {
       console.log(
-        'Usage: npm start -- [--interactive | -i] "<feature en español>" [--provider openai|deepseek] [--model ...] [--run-id ...] [--agents researcher,planner,...]',
+        'Usage: npm start -- [--interactive | -i] "<feature en español>" [--provider openai|deepseek|openrouter] [--model ...] [--run-id ...] [--agents researcher,planner,...]',
       );
       process.exit(0);
     } else positionals.push(a);

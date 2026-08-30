@@ -72,7 +72,7 @@ const openApiDoc = {
                   },
                   provider: {
                     type: "string",
-                    enum: ["openai", "deepseek"],
+                    enum: ["openai", "deepseek", "openrouter"],
                     nullable: true,
                   },
                   model: { type: "string", nullable: true },

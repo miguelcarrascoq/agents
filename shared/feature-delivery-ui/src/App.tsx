@@ -12,6 +12,7 @@ import { renderMarkdown } from "./markdown";
 import {
   defaultModelFor,
   isKnownModel,
+  modelLabel,
   modelsFor,
 } from "./models";
 import { TEMPLATES } from "./templates";
@@ -715,6 +716,14 @@ export default function App() {
                   }
                   onClick={() => applyTemplate(t)}
                 >
+                  {t.form.model ? (
+                    <span className="template-model">
+                      {modelLabel(
+                        t.form.provider ?? "openai",
+                        t.form.model,
+                      )}
+                    </span>
+                  ) : null}
                   <span className="template-title">{t.title}</span>
                   <span className="template-blurb">{t.blurb}</span>
                 </button>

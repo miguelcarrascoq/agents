@@ -50,3 +50,11 @@ export function defaultModelFor(provider: Provider): string {
 export function isKnownModel(provider: Provider, model: string): boolean {
   return MODEL_OPTIONS[provider].some((m) => m.id === model);
 }
+
+/** Short display label for a model id (known option label, else last path segment). */
+export function modelLabel(provider: Provider, model: string): string {
+  const known = MODEL_OPTIONS[provider]?.find((m) => m.id === model);
+  if (known) return known.label;
+  const slash = model.lastIndexOf("/");
+  return slash >= 0 ? model.slice(slash + 1) : model;
+}

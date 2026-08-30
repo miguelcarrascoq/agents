@@ -86,7 +86,7 @@ docker compose --profile langgraph-python run --rm langgraph-python \
   python -m app "Agregar autenticación JWT..." --agents planner,designer
 ```
 
-Detalle (todos los labs, Langflow, TypeScript): [docker/README.md](docker/README.md).
+Detalle (todos los labs, Langflow, TypeScript, rebuild de UI con `--no-cache`): [docker/README.md](docker/README.md).
 
 ### Run local (`./run.sh`)
 

@@ -10,7 +10,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Agregar autenticación JWT con registro, login, refresh token y middleware de protección de rutas en una API REST.",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: [...DEFAULT_AGENTS],
       runId: "",
     },
@@ -23,7 +23,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Diseñar e implementar un CRUD de productos con categorías, paginación, filtros por precio y validación de entrada.",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: [...DEFAULT_AGENTS],
       runId: "",
     },
@@ -75,7 +75,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Construir un módulo de onboarding para nuevos usuarios: pantallas, API, diagramas de flujo y assets visuales de bienvenida; luego revisar la entrega.",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: [
         "researcher",
         "planner",
@@ -96,7 +96,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Agregar un tema oscuro al dashboard con toggle persistente, tokens de color y componentes adaptados (sidebar, tablas, formularios).",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: [...DEFAULT_AGENTS],
       runId: "",
     },
@@ -109,7 +109,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Implementar notificaciones push web con Service Worker, suscripción del usuario y endpoint de envío desde el backend.",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: ["planner", "designer", "coder", "reviewer"],
       runId: "",
     },
@@ -148,7 +148,7 @@ export const TEMPLATES: Template[] = [
       request:
         "Continuar la implementación y hacer code review de los artefactos ya generados en este sandbox.",
       provider: "openai",
-      model: "gpt-4.1-mini",
+      model: "gpt-4.1",
       agents: ["coder", "reviewer"],
       runId: "",
     },

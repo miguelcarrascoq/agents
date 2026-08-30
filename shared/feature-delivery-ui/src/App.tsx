@@ -1,5 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createRun, fetchHealth } from "./api";
+import {
+  defaultModelFor,
+  isKnownModel,
+  modelsFor,
+} from "./models";
 import { TEMPLATES } from "./templates";
 import {
   AGENT_META,
@@ -16,7 +21,7 @@ import "./App.css";
 const INITIAL: RunFormState = {
   request: "",
   provider: "openai",
-  model: "gpt-4.1-mini",
+  model: defaultModelFor("openai"),
   runId: "",
   agents: [...DEFAULT_AGENTS],
   quiet: false,
@@ -239,14 +244,7 @@ export default function App() {
                   setForm((f) => ({
                     ...f,
                     provider,
-                    model:
-                      provider === "deepseek"
-                        ? f.model.startsWith("gpt")
-                          ? "deepseek-chat"
-                          : f.model
-                        : f.model === "deepseek-chat"
-                          ? "gpt-4.1-mini"
-                          : f.model,
+                    model: defaultModelFor(provider),
                   }));
                 }}
               >
@@ -256,17 +254,28 @@ export default function App() {
             </label>
             <label className="field">
               <span>Model</span>
-              <input
-                type="text"
+              <select
                 value={form.model}
                 onChange={(e) => {
                   setActiveTemplate(null);
                   setForm((f) => ({ ...f, model: e.target.value }));
                 }}
-                placeholder={
-                  form.provider === "openai" ? "gpt-4.1-mini" : "deepseek-chat"
-                }
-              />
+              >
+                {!isKnownModel(form.provider, form.model) && form.model.trim() ? (
+                  <option value={form.model}>{form.model} (custom)</option>
+                ) : null}
+                {modelsFor(form.provider).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label} — {m.hint}
+                  </option>
+                ))}
+              </select>
+              {form.agents.includes("illustrator") ? (
+                <p className="field-hint">
+                  Las imágenes usan OpenAI <code>gpt-image-1</code> (requiere{" "}
+                  <code>OPENAI_API_KEY</code>), aunque el chat sea DeepSeek.
+                </p>
+              ) : null}
             </label>
           </div>
 

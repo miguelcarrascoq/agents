@@ -44,6 +44,23 @@ function isImageAsset(path: string): boolean {
   return /\.(png|jpe?g|webp|gif)$/i.test(path);
 }
 
+type TrackedPhase = PhaseEvent & {
+  startedAt: number;
+  durationMs?: number;
+};
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const sec = Math.floor(ms / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  const remSec = sec % 60;
+  if (min < 60) return remSec ? `${min}m ${remSec}s` : `${min}m`;
+  const hr = Math.floor(min / 60);
+  const remMin = min % 60;
+  return remMin ? `${hr}h ${remMin}m` : `${hr}h`;
+}
+
 export default function App() {
   const [project, setProject] = useState<string | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
@@ -55,7 +72,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
-  const [phases, setPhases] = useState<PhaseEvent[]>([]);
+  const [phases, setPhases] = useState<TrackedPhase[]>([]);
+  const [tickNow, setTickNow] = useState(() => Date.now());
   const [templateFlash, setTemplateFlash] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [paramsCollapsed, setParamsCollapsed] = useState(false);
@@ -110,6 +128,13 @@ export default function App() {
       document.removeEventListener("keydown", onKey);
     };
   }, [templatesOpen]);
+
+  useEffect(() => {
+    if (!loading || phases.length === 0) return;
+    setTickNow(Date.now());
+    const id = window.setInterval(() => setTickNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [loading, phases.length]);
 
   function applyTemplate(t: Template) {
     setActiveTemplate(t.id);
@@ -189,7 +214,17 @@ export default function App() {
           agents: orderAgents(form.agents),
         },
         {
-          onPhase: (event) => setPhases((prev) => [...prev, event]),
+          onPhase: (event) => {
+            const now = Date.now();
+            setPhases((prev) => {
+              const closed = prev.map((p, i) =>
+                i === prev.length - 1 && p.durationMs == null
+                  ? { ...p, durationMs: now - p.startedAt }
+                  : p,
+              );
+              return [...closed, { ...event, startedAt: now }];
+            });
+          },
         },
       );
       setResult(data);
@@ -197,6 +232,14 @@ export default function App() {
       setError(err instanceof Error ? err.message : String(err));
       setParamsCollapsed(false);
     } finally {
+      const end = Date.now();
+      setPhases((prev) =>
+        prev.map((p, i) =>
+          i === prev.length - 1 && p.durationMs == null
+            ? { ...p, durationMs: end - p.startedAt }
+            : p,
+        ),
+      );
       setLoading(false);
     }
   }
@@ -520,6 +563,9 @@ export default function App() {
               {phases.map((p, i) => {
                 const done = !loading || i < phases.length - 1;
                 const active = loading && i === phases.length - 1;
+                const durationMs =
+                  p.durationMs ??
+                  (active ? tickNow - p.startedAt : undefined);
                 return (
                   <li
                     key={`${p.phase}-${p.index}-${i}`}
@@ -527,9 +573,16 @@ export default function App() {
                       active ? "phase active" : done ? "phase done" : "phase"
                     }
                   >
-                    <span className="phase-banner">
-                      Pipeline {p.index}/{p.total} · {p.phase}
-                    </span>
+                    <div className="phase-head">
+                      <span className="phase-banner">
+                        Pipeline {p.index}/{p.total} · {p.phase}
+                      </span>
+                      {durationMs != null && (
+                        <span className="phase-duration">
+                          {formatDuration(durationMs)}
+                        </span>
+                      )}
+                    </div>
                     <span className="phase-meta mono">
                       run_id={p.run_id} · {p.framework}
                     </span>
@@ -539,6 +592,19 @@ export default function App() {
               {loading && phases.length === 0 && (
                 <li className="phase active">
                   <span className="phase-banner">Iniciando pipeline…</span>
+                </li>
+              )}
+              {!loading && phases.length > 0 && (
+                <li
+                  className="phase-total"
+                  aria-label="Tiempo total del pipeline"
+                >
+                  <span>Tiempo total</span>
+                  <span className="phase-duration">
+                    {formatDuration(
+                      phases.reduce((s, p) => s + (p.durationMs ?? 0), 0),
+                    )}
+                  </span>
                 </li>
               )}
             </ol>

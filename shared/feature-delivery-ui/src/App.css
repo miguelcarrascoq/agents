@@ -785,6 +785,36 @@
   opacity: 0.55;
 }
 
+.phase-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.phase-duration {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.phase-total .phase-duration {
+  color: var(--ink-soft);
+}
+
 .phase.done {
   opacity: 0.85;
 }

@@ -13,15 +13,33 @@ function ensureMermaid(): void {
   mermaidReady = true;
 }
 
+/** Replace commas inside a single pair of shape delimiters. */
+function neutralizeCommasInShapes(src: string): string {
+  return src
+    .replace(/\[([^\]]*)]/g, (_, inner: string) => `[${inner.replace(/,/g, " /")}]`)
+    .replace(/\(([^)]*)\)/g, (_, inner: string) => `(${inner.replace(/,/g, " /")})`)
+    .replace(/\{([^}]*)}/g, (_, inner: string) => `{${inner.replace(/,/g, " /")}}`);
+}
+
+/** Colons in unquoted edge labels break the flowchart lexer (e.g. M:N). */
+function neutralizeColonsInEdgeLabels(src: string): string {
+  return src
+    .replace(/--\s*([^>\n]*?)\s*-->/g, (_, label: string) => `-- ${label.replace(/:/g, "-").trim()} -->`)
+    .replace(/\|([^|\n]+)\|/g, (_, label: string) => `|${label.replace(/:/g, "-")}|`);
+}
+
 /** Fix common LLM Mermaid mistakes that break the parser (strict mode). */
 export function sanitizeMermaidSource(text: string): string {
-  return text
+  let src = text
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/?[a-zA-Z][^>]*>/g, "")
     // Double quotes inside labels/edges → single quotes (parser error otherwise).
     .replace(/"/g, "'")
     .replace(/[ \t]+\n/g, "\n")
     .trim();
+  src = neutralizeCommasInShapes(src);
+  src = neutralizeColonsInEdgeLabels(src);
+  return src;
 }
 
 type Props = {

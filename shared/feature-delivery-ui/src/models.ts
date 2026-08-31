@@ -17,8 +17,8 @@ export const MODEL_OPTIONS: Record<Provider, readonly ModelOption[]> = {
   ],
   openrouter: [
     {
-      id: "google/gemini-2.0-flash-001",
-      label: "gemini-2.0-flash",
+      id: "google/gemini-2.5-flash-lite",
+      label: "gemini-2.5-flash-lite",
       hint: "muy barato / rápido",
     },
     {

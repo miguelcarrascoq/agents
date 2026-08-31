@@ -41,7 +41,7 @@ export function resolveLlmSettings(
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is required when provider=openrouter");
   return {
     provider: "openrouter",
-    model: model || process.env.MODEL || "google/gemini-2.0-flash-001",
+    model: model || process.env.MODEL || "google/gemini-2.5-flash-lite",
     apiKey,
     baseUrl: OPENROUTER_BASE_URL,
   };

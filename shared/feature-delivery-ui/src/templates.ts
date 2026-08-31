@@ -68,6 +68,45 @@ export const TEMPLATES: Template[] = [
     },
   },
   {
+    id: "ilustracion-mafalda",
+    title: "Ilustración JC Bodoque",
+    blurb: "OpenRouter · Gemini Flash",
+    form: {
+      request:
+        "Genera una ilustración humorística de 'Juan Carlos Bodoque' (personaje de la serie de TV '31 minutos') hablando sobre computadores.",
+      provider: "openrouter",
+      model: "google/gemini-2.5-flash-lite",
+      agents: ["researcher", "illustrator"],
+      runId: "",
+    },
+  },
+  {
+    id: "ilustracion-onboarding",
+    title: "Assets de bienvenida",
+    blurb: "OpenRouter · Llama 70B",
+    form: {
+      request:
+        "Genera 2-3 ilustraciones flat/friendly para pantallas de onboarding de una app de productividad (bienvenida, perfil, listo).",
+      provider: "openrouter",
+      model: "meta-llama/llama-3.3-70b-instruct",
+      agents: ["researcher", "illustrator"],
+      runId: "",
+    },
+  },
+  {
+    id: "ilustracion-arquitectura",
+    title: "Metaphor visual de arquitectura",
+    blurb: "OpenRouter · Gemini Flash",
+    form: {
+      request:
+        "Genera una ilustración metafórica de un pipeline de agentes (research → plan → diseño → código) como fábrica/taller, estilo editorial limpio.",
+      provider: "openrouter",
+      model: "google/gemini-2.5-flash-lite",
+      agents: ["researcher", "illustrator"],
+      runId: "",
+    },
+  },
+  {
     id: "full-pipeline",
     title: "Pipeline completo",
     blurb: "Los 7 agentes",

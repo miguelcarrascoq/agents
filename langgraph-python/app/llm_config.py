@@ -58,7 +58,7 @@ def resolve_llm_settings(
     api_key = os.getenv("OPENROUTER_API_KEY", "")
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY is required when provider=openrouter")
-    default_model = os.getenv("MODEL") or "google/gemini-2.0-flash-001"
+    default_model = os.getenv("MODEL") or "google/gemini-2.5-flash-lite"
     return LLMSettings(
         provider=provider,
         model=model or default_model,

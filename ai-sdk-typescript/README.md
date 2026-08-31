@@ -1,5 +1,7 @@
 # Vercel AI SDK — Feature Delivery Lab
 
+**Tecnología:** Vercel AI SDK — SDK (`generateText` + tools + `stopWhen`; sin wrapper de workflows).
+
 Pipeline con **`generateText` + tools + `stopWhen`**: plan → design → code → review.
 
 Opt-in agents: **Researcher**, **Diagrammer**, **Illustrator**.

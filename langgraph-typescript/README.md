@@ -1,5 +1,7 @@
 # LangGraph.js — Feature Delivery Lab
 
+**Tecnología:** LangGraph.js — framework de orquestación (grafo con estado compartido).
+
 **Recommended pattern** for TypeScript in this monorepo (see [COMPARISON.md](../COMPARISON.md#recommended-pattern)): same graph as `langgraph-python` — nodes over shared state, edges + optional review→code loop, artifact contract on disk.
 
 Same graph as `langgraph-python`: Planner → Designer → Coder → Reviewer (optional review→code loop).

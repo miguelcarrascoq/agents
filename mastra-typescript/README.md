@@ -1,5 +1,7 @@
 # Mastra — Feature Delivery Lab
 
+**Tecnología:** Mastra — framework (agents + workflow steps sobre AI SDK).
+
 Pipeline con **Agents + Workflow steps**: plan → design → code → review.
 
 Opt-in agents: **Researcher**, **Diagrammer**, **Illustrator**.

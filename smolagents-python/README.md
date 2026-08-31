@@ -1,5 +1,7 @@
 # smolagents — Feature Delivery Lab
 
+**Tecnología:** smolagents (Hugging Face) — librería (API pequeña; el lab arma el pipeline a mano).
+
 Pipeline con `ToolCallingAgent`s en secuencia (Planner → Designer → Coder → Reviewer).
 
 Agentes opt-in: **Researcher**, **Diagrammer**, **Illustrator**.

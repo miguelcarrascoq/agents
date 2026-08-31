@@ -351,6 +351,7 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   flex: 1;
   overflow: hidden;
   font-size: 0.72rem;
@@ -976,9 +977,15 @@
   color: var(--muted);
 }
 
-.path-list ul:not(.asset-list) {
+.path-list > .path-tree {
   margin: 0;
   padding-left: 0;
+  list-style: none;
+}
+
+.path-list .path-tree .path-tree {
+  margin: 0;
+  padding-left: 1rem;
   list-style: none;
 }
 
@@ -989,12 +996,7 @@
 
 .path-tree {
   margin: 0;
-  padding-left: 0;
   list-style: none;
-}
-
-.path-tree .path-tree {
-  padding-left: 0.95rem;
 }
 
 .path-tree-item {

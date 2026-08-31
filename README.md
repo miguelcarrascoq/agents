@@ -62,16 +62,23 @@ python -m app "genera una imagen del presidente actual de chile" --agents resear
 
 ## Proyectos
 
-| Carpeta | Stack | Mental model |
-|---------|--------|--------------|
-| [langgraph-python](langgraph-python/) | Python + LangGraph | Grafo con estado (**recomendado**) |
-| [crewai-python](crewai-python/) | Python + CrewAI | Roles + Crew |
-| [smolagents-python](smolagents-python/) | Python + smolagents | Code-first / tools |
-| [openai-agents-python](openai-agents-python/) | Python + OpenAI Agents SDK | Sequential agents |
-| [langgraph-typescript](langgraph-typescript/) | TypeScript + LangGraph.js | Mismo grafo en TS (**recomendado en TS**) |
-| [mastra-typescript](mastra-typescript/) | TypeScript + Mastra | Workflows/agents TS |
-| [ai-sdk-typescript](ai-sdk-typescript/) | TypeScript + Vercel AI SDK | `generateText` + tools + `stopWhen` |
-| [langflow-python](langflow-python/) | Python + Langflow | UI visual + REST API, custom components |
+| Carpeta | Tecnología | Tipo | Mental model |
+|---------|------------|------|--------------|
+| [langgraph-python](langgraph-python/) | LangGraph | Framework de orquestación | Grafo con estado (**recomendado**) |
+| [crewai-python](crewai-python/) | CrewAI | Framework multi-agente | Roles + Crew |
+| [smolagents-python](smolagents-python/) | smolagents (Hugging Face) | Librería | Code-first / tools |
+| [openai-agents-python](openai-agents-python/) | OpenAI Agents SDK | SDK | Sequential agents |
+| [langgraph-typescript](langgraph-typescript/) | LangGraph.js | Framework de orquestación | Mismo grafo en TS (**recomendado en TS**) |
+| [mastra-typescript](mastra-typescript/) | Mastra | Framework | Workflows/agents TS |
+| [ai-sdk-typescript](ai-sdk-typescript/) | Vercel AI SDK | SDK | `generateText` + tools + `stopWhen` |
+| [langflow-python](langflow-python/) | Langflow | Plataforma visual (low-code) | UI visual + REST API, custom components |
+
+Tipos:
+
+- **Framework**: estructura de orquestación (grafo, crew, workflows) que impone el modelo mental del lab.
+- **Librería**: API pequeña para agentes/tools; el lab arma el pipeline a mano.
+- **SDK**: kit oficial del proveedor/stack LLM (Agents SDK, AI SDK).
+- **Plataforma**: producto con UI + runtime propio (Langflow); el lab orquesta vía REST.
 
 Ver [COMPARISON.md](COMPARISON.md) para el patrón recomendado, ranking y qué observar al comparar.
 

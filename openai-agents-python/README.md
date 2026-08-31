@@ -1,5 +1,7 @@
 # OpenAI Agents SDK — Feature Delivery Lab
 
+**Tecnología:** OpenAI Agents SDK — SDK (agents-as-objects + tools + handoffs).
+
 Pipeline secuencial: Planner → Designer → Coder → Reviewer (un `Runner.run` por fase).
 
 Agentes opt-in: **Researcher**, **Diagrammer**, **Illustrator**.

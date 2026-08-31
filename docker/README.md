@@ -36,16 +36,16 @@ Artifacts land on the host under `<lab>/output/`. Knowledge is mounted read-only
 
 ## Profiles
 
-| Profile / service | Stack | Host ports |
-|-------------------|-------|------------|
-| `langgraph-python` | Python + LangGraph | `8000` |
-| `crewai-python` | Python + CrewAI | `8000` |
-| `smolagents-python` | Python + smolagents | `8000` |
-| `openai-agents-python` | Python + OpenAI Agents | `8000` |
-| `langgraph-typescript` | TypeScript + LangGraph.js | `8000` |
-| `mastra-typescript` | TypeScript + Mastra | `8000` |
-| `ai-sdk-typescript` | TypeScript + Vercel AI SDK | `8000` |
-| `langflow-python` | Lab API + Langflow UI | `8000` + `7860` |
+| Profile / service | Stack | Tipo | Host ports |
+|-------------------|-------|------|------------|
+| `langgraph-python` | Python + LangGraph | Framework de orquestación | `8000` |
+| `crewai-python` | Python + CrewAI | Framework multi-agente | `8000` |
+| `smolagents-python` | Python + smolagents | Librería | `8000` |
+| `openai-agents-python` | Python + OpenAI Agents | SDK | `8000` |
+| `langgraph-typescript` | TypeScript + LangGraph.js | Framework de orquestación | `8000` |
+| `mastra-typescript` | TypeScript + Mastra | Framework | `8000` |
+| `ai-sdk-typescript` | TypeScript + Vercel AI SDK | SDK | `8000` |
+| `langflow-python` | Lab API + Langflow UI | Plataforma visual (low-code) | `8000` + `7860` |
 
 Run **one profile at a time** (labs share host port `8000`).
 

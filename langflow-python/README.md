@@ -1,5 +1,7 @@
 # Langflow — Feature Delivery Lab
 
+**Tecnología:** Langflow — plataforma visual (low-code); el lab orquesta vía REST.
+
 Pipeline multi-agente vía **Langflow UI + REST API**. Mismo contrato que los otros labs; cada fase es un flow de Langflow editable visualmente.
 
 **Default:** Planner → Designer → Coder → Reviewer  

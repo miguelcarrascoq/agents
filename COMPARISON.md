@@ -1,6 +1,6 @@
 # Comparison guide
 
-Same feature-delivery pipeline in eight frameworks. Use this checklist while you run the same Spanish prompt in each lab.
+Same feature-delivery pipeline in eight labs / stacks. Use this checklist while you run the same Spanish prompt in each lab.
 
 ## Recommended pattern
 
@@ -35,16 +35,16 @@ Yes, but **thin and purposeful**:
 
 ## Mental models
 
-| Project | How orchestration looks | Best for noticing… |
-|---------|-------------------------|--------------------|
-| langgraph-python | Explicit nodes + edges over shared state | Control flow, optional review→code loops, checkpointing story (**recommended default**) |
-| crewai-python | Role / goal / backstory + sequential tasks | Fastest multi-agent narrative; less explicit state machine |
-| smolagents-python | Tool-calling / code agents | Minimal framework surface; agent drives tools |
-| openai-agents-python | Agents + handoffs | Delegation primitives; OpenAI-native DX |
-| langgraph-typescript | Same graph idea in JS/TS | Language ergonomics vs langgraph-python (**recommended on TS**) |
-| mastra-typescript | Agents + workflow steps | TS-native workflows, typed steps |
-| ai-sdk-typescript | `generateText` + tools + `stopWhen` | Vercel AI SDK tool loop without Mastra/LangGraph |
-| langflow-python | 7 agent flows in UI + Python REST orchestrator | Visual editing, custom components, API-first deployment |
+| Project | Type | How orchestration looks | Best for noticing… |
+|---------|------|-------------------------|--------------------|
+| langgraph-python | Orchestration framework | Explicit nodes + edges over shared state | Control flow, optional review→code loops, checkpointing story (**recommended default**) |
+| crewai-python | Multi-agent framework | Role / goal / backstory + sequential tasks | Fastest multi-agent narrative; less explicit state machine |
+| smolagents-python | Library | Tool-calling / code agents | Minimal framework surface; agent drives tools |
+| openai-agents-python | SDK | Agents + handoffs | Delegation primitives; OpenAI-native DX |
+| langgraph-typescript | Orchestration framework | Same graph idea in JS/TS | Language ergonomics vs langgraph-python (**recommended on TS**) |
+| mastra-typescript | Framework | Agents + workflow steps | TS-native workflows, typed steps |
+| ai-sdk-typescript | SDK | `generateText` + tools + `stopWhen` | Vercel AI SDK tool loop without Mastra/LangGraph |
+| langflow-python | Visual platform | 7 agent flows in UI + Python REST orchestrator | Visual editing, custom components, API-first deployment |
 
 ## Shared contract
 

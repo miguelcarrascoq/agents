@@ -1,5 +1,7 @@
 # CrewAI — Feature Delivery Lab
 
+**Tecnología:** CrewAI — framework multi-agente (roles + crew).
+
 Pipeline multi-agente por roles: Planner, Designer, Coder, Reviewer en secuencia.
 
 Agentes opt-in: **Researcher**, **Diagrammer**, **Illustrator**.

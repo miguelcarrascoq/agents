@@ -5,9 +5,8 @@ import {
   buildCliPreview,
   highlightCallPreview,
 } from "./callPreview";
-import { FileViewer } from "./FileViewer";
+import { FileExplorer } from "./FileExplorer";
 import { MarkdownArtifact } from "./MarkdownArtifact";
-import { PathTree } from "./PathTree";
 import { renderMarkdown } from "./markdown";
 import {
   defaultModelFor,
@@ -220,8 +219,19 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    if (!result) return;
+    const paths = [
+      ...(result.files ?? []),
+      ...(result.diagrams ?? []),
+    ];
+    if (!paths.length) return;
+    if (selectedFile && paths.includes(selectedFile)) return;
+    void openRunFile(result.run_id, paths[0]);
+  }, [result]);
+
   return (
-    <div className="page">
+    <div className={runActive ? "page run-active" : "page"}>
       <header className="hero">
         <h1 className="brand">Feature Delivery</h1>
         <p className="tagline">
@@ -596,45 +606,18 @@ export default function App() {
                   ),
               )}
 
-              {(
-                [
-                  ["files", result.files],
-                  ["diagrams", result.diagrams],
-                ] as const
-              ).map(
-                ([key, list]) =>
-                  list &&
-                  list.length > 0 && (
-                    <div key={key} className="path-list">
-                      <h3>{key}</h3>
-                      <PathTree
-                        paths={list}
-                        selected={selectedFile}
-                        onOpen={(p) => void openRunFile(result.run_id, p)}
-                      />
-                    </div>
-                  ),
-              )}
-
-              {(fileLoading || fileError || (selectedFile && fileText !== null)) && (
-                <div className="file-preview">
-                  {fileLoading && (
-                    <p className="file-preview-status">Cargando archivo…</p>
-                  )}
-                  {fileError && (
-                    <p className="file-preview-error">{fileError}</p>
-                  )}
-                  {!fileLoading &&
-                    !fileError &&
-                    selectedFile &&
-                    fileText !== null && (
-                      <FileViewer
-                        path={selectedFile}
-                        text={fileText}
-                        rawUrl={assetUrl(result.run_id, selectedFile)}
-                      />
-                    )}
-                </div>
+              {((result.files && result.files.length > 0) ||
+                (result.diagrams && result.diagrams.length > 0)) && (
+                <FileExplorer
+                  runId={result.run_id}
+                  files={result.files ?? []}
+                  diagrams={result.diagrams ?? []}
+                  selected={selectedFile}
+                  fileText={fileText}
+                  loading={fileLoading}
+                  error={fileError}
+                  onOpen={(p) => void openRunFile(result.run_id, p)}
+                />
               )}
 
               {result.assets && result.assets.length > 0 && (

@@ -4,6 +4,10 @@
   padding: 2.5rem 1.25rem 4rem;
 }
 
+.page.run-active {
+  max-width: min(1480px, 100%);
+}
+
 .hero {
   margin-bottom: 2.25rem;
   animation: rise 0.55s ease-out both;
@@ -996,6 +1000,7 @@
 
 .path-tree {
   margin: 0;
+  padding-left: 0;
   list-style: none;
 }
 
@@ -1081,6 +1086,104 @@
 
 .path-tree-file.path-link:hover {
   text-decoration: underline;
+}
+
+.file-explorer {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  margin-top: 0.85rem;
+  height: min(70vh, 640px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.file-explorer-tree {
+  min-width: 0;
+  overflow: auto;
+  padding: 0.55rem 0.45rem 0.75rem;
+  border-right: 1px solid var(--line);
+  background: rgba(19, 32, 51, 0.03);
+  font-size: 0.72rem;
+}
+
+.file-explorer-section + .file-explorer-section {
+  margin-top: 0.75rem;
+}
+
+.file-explorer-section h3 {
+  margin: 0 0 0.3rem 0.2rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.file-explorer .path-tree {
+  font-size: 0.72rem;
+}
+
+.file-explorer .path-tree .path-tree {
+  padding-left: 0.55rem;
+}
+
+.file-explorer .path-tree-item {
+  font-size: 0.72rem;
+}
+
+.file-explorer .path-tree-dir,
+.file-explorer .path-tree-file {
+  gap: 0.15rem;
+  padding: 0.08rem 0.2rem;
+  border-radius: 3px;
+}
+
+.file-explorer .path-tree-chevron,
+.file-explorer .path-tree-file-gap {
+  width: 0.7rem;
+  font-size: 0.62rem;
+}
+
+.file-explorer .path-tree-name {
+  font-size: 0.72rem;
+}
+
+.file-explorer-pane {
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.file-explorer-pane .file-viewer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.file-explorer-pane .file-viewer-body {
+  max-height: none;
+  flex: 1;
+}
+
+.file-explorer-pane .file-preview-status,
+.file-explorer-pane .file-preview-error {
+  margin: auto 0;
+}
+
+@media (max-width: 720px) {
+  .file-explorer {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(160px, 36%) 1fr;
+    height: min(80vh, 720px);
+  }
+
+  .file-explorer-tree {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
 }
 
 .meta-actions {

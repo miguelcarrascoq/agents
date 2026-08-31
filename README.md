@@ -24,7 +24,32 @@ Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Salida:** `output/<run_id>/` con `research.md`, `plan.md`, `design.md`, `diagrams/*.mmd`, `assets/*.png`, `src/**`, `review.md`, `summary.json`
 
-Las fases se desacoplan por esos artefactos (no por memoria conversacional): `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Cada lab también expone HTTP **sin autenticación**: `./run.sh serve` → UI abierta en [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/), `POST /runs`, y Swagger en `/docs` (FastAPI en Python, Hono en TypeScript).
+Cada agente escribe un artefacto en disco; el siguiente lo lee desde el sandbox (no hay memoria conversacional compartida). `(opt)` = fase opt-in.
+
+```mermaid
+flowchart TD
+  request[Feature request] --> researcher["(opt) Researcher / research.md"]
+  researcher --> planner[Planner / plan.md]
+  planner --> designer[Designer / design.md]
+  designer --> diagrammer["(opt) Diagrammer / diagrams"]
+  diagrammer --> illustrator["(opt) Illustrator / assets"]
+  illustrator --> coder[Coder / src]
+  coder --> reviewer[Reviewer / review.md]
+  reviewer --> output["output/run_id"]
+```
+
+Las fases se desacoplan por artefactos: `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. En LangGraph, el Reviewer puede devolver `request_changes` y reabrir el Coder (hasta ~2 pases); los demás labs aproximan la misma secuencia lineal.
+
+```mermaid
+flowchart TD
+  selected[Selected agents] --> sandbox["Sandbox output/run_id"]
+  sandbox --> coder[Coder]
+  coder --> reviewer[Reviewer]
+  reviewer -->|"approve or comment"| done[Done]
+  reviewer -->|request_changes| coder
+```
+
+La lógica vive en `run_feature_delivery` / `runFeatureDelivery` (el CLI solo la invoca). Cada lab también expone HTTP **sin autenticación**: `./run.sh serve` → UI abierta en [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/), `POST /runs`, y Swagger en `/docs` (FastAPI en Python, Hono en TypeScript).
 
 Ejecutar solo algunos agentes:
 

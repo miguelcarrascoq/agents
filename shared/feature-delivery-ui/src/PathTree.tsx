@@ -71,7 +71,7 @@ function TreeNodes({
               onClick={() => onOpen(node.path)}
             >
               <span className="path-tree-file-gap" aria-hidden />
-              <span className="mono">{node.name}</span>
+                <span className="path-tree-name mono">{node.name}</span>
             </button>
           </li>
         );

@@ -18,27 +18,34 @@ Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Entrada (español):** una feature en lenguaje natural.
 
-**Agentes (default):** Planner → Designer → Coder → Reviewer
-
-**Agentes (opt-in):** Researcher, Diagrammer, Illustrator
-
 **Salida:** `output/<run_id>/` con `research.md`, `plan.md`, `design.md`, `diagrams/*.mmd`, `assets/*.png`, `src/**`, `review.md`, `summary.json`
 
-Cada agente escribe un artefacto en disco; el siguiente lo lee desde el sandbox (no hay memoria conversacional compartida). `(opt)` = fase opt-in.
+Cada agente escribe un artefacto en disco; el siguiente (si está seleccionado) lo lee desde el sandbox — no hay memoria conversacional compartida.
+
+**Cómo se elige el camino**
+
+- **Default** (sin `--agents`): `planner → designer → coder → reviewer`
+- **Opt-in:** `researcher`, `diagrammer`, `illustrator` solo si van en `--agents`
+- **Selectivo:** `--agents` elige un subconjunto; las fases no listadas **se omiten** (no hay camino forzado por todas las fases)
+- **Prerequisitos por artefacto** (no por “pasar por todas las fases”): p. ej. `designer` / `coder` / `reviewer` necesitan `plan.md` / `design.md` (producidos en el mismo run o ya en el sandbox vía `--run-id`); `researcher` e `illustrator` no tienen prerequisitos
 
 ```mermaid
 flowchart TD
-  request[Feature request] --> researcher["(opt) Researcher / research.md"]
-  researcher --> planner[Planner / plan.md]
-  planner --> designer[Designer / design.md]
-  designer --> diagrammer["(opt) Diagrammer / diagrams"]
-  diagrammer --> illustrator["(opt) Illustrator / assets"]
-  illustrator --> coder[Coder / src]
-  coder --> reviewer[Reviewer / review.md]
-  reviewer --> output["output/run_id"]
+  request[Feature request] --> pick["Elegir agentes con --agents"]
+  pick --> run["Ejecutar solo los elegidos en orden canónico"]
+  run --> sandbox["Artefactos en output/run_id"]
 ```
 
-Las fases se desacoplan por artefactos: `--agents` corre un subconjunto; `--run-id` reanuda desde el sandbox. En LangGraph, el Reviewer puede devolver `request_changes` y reabrir el Coder (hasta ~2 pases); los demás labs aproximan la misma secuencia lineal.
+**Orden canónico** (referencia; solo corren los que estén en `--agents`):
+
+`researcher → planner → designer → diagrammer → illustrator → coder → reviewer`
+
+Rutas de ejemplo:
+
+- Default: `planner → designer → coder → reviewer`
+- Solo research + imagen: `researcher → illustrator` (salta planner, designer, coder y reviewer)
+
+Las fases no seleccionadas se saltan. `--run-id` reanuda desde el sandbox. En LangGraph, si `coder` y `reviewer` están ambos seleccionados, el Reviewer puede devolver `request_changes` y reabrir el Coder (hasta ~2 pases); los demás labs aproximan la misma secuencia cuando esas fases están elegidas.
 
 ```mermaid
 flowchart TD

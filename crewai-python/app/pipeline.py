@@ -8,6 +8,11 @@ from typing import Type
 
 from crewai import Agent, Crew, LLM, Process, Task
 from crewai.tools import BaseTool
+from feature_delivery_api.mermaid import (
+    MERMAID_DESIGNER_RULES,
+    MERMAID_DIAGRAMMER_ARCH_RULES,
+    MERMAID_DIAGRAMMER_SEQ_RULES,
+)
 from pydantic import BaseModel, Field
 
 from app.llm_config import resolve_llm_settings
@@ -246,11 +251,9 @@ def _build_task(
         return Task(
             description=(
                 f"Feature request:\n{request}\n\nPlan existente:\n{plan}\n\n"
-                "Produce design.md (write_file) con componentes, endpoints, "
-                "modelo de datos, trade-offs y diagrama de componentes. OBLIGATORIO: fence "
-                "```mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
-                "PROHIBIDO: ASCII/textual, sequenceDiagram, "
-                "classDiagram. Usa search_knowledge sobre api design si hace falta."
+                f"Produce design.md (write_file) con componentes, endpoints, modelo de datos y trade-offs. "
+                f"{MERMAID_DESIGNER_RULES} "
+                "Usa search_knowledge sobre api design si hace falta."
             ),
             expected_output="Contenido de design.md en español",
             agent=agent_map["designer"],
@@ -260,9 +263,8 @@ def _build_task(
             description=(
                 f"Feature request:\n{request}\n\nPlan:\n{plan}\n\nDesign:\n{design}\n\n"
                 "Usa write_mermaid para diagrams/architecture.mmd y diagrams/sequence.mmd. "
-                "REGLA: cada archivo debe empezar con 'flowchart TD' o 'flowchart LR' (o 'graph TD'). "
-                "NO uses sequenceDiagram ni classDiagram. "
-                "sequence.mmd = flujo temporal con flowchart; architecture.mmd = componentes."
+                f"architecture.mmd: {MERMAID_DIAGRAMMER_ARCH_RULES} "
+                f"sequence.mmd: {MERMAID_DIAGRAMMER_SEQ_RULES}"
             ),
             expected_output="Diagramas Mermaid flowchart bajo diagrams/",
             agent=agent_map["diagrammer"],

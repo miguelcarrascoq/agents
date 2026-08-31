@@ -931,6 +931,13 @@
   height: auto;
 }
 
+.md .mermaid[data-mermaid-error="1"] {
+  color: var(--muted, #a3a3a3);
+  border: 1px dashed var(--line, #444);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
 .md table {
   width: 100%;
   border-collapse: collapse;

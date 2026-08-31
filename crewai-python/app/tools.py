@@ -7,6 +7,8 @@ import os
 import re
 from pathlib import Path
 
+from feature_delivery_api.mermaid import sanitize_mermaid_in_markdown, sanitize_mermaid_source
+
 
 class Sandbox:
     def __init__(self, root: Path, knowledge_dir: Path) -> None:
@@ -27,6 +29,8 @@ class Sandbox:
         return path
 
     def write_file(self, path: str, content: str) -> str:
+        if "```mermaid" in content:
+            content = sanitize_mermaid_in_markdown(content)
         target = self._safe_path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
@@ -101,6 +105,7 @@ class Sandbox:
         if cleaned.startswith("```"):
             cleaned = re.sub(r"^```(?:mermaid)?\s*", "", cleaned)
             cleaned = re.sub(r"\s*```$", "", cleaned)
+        cleaned = sanitize_mermaid_source(cleaned)
         return self.write_file(rel, cleaned + "\n")
 
     def generate_image(self, prompt: str, path: str) -> str:

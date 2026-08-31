@@ -4,6 +4,11 @@ import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import {
+  MERMAID_DESIGNER_RULES,
+  MERMAID_DIAGRAMMER_ARCH_RULES,
+  MERMAID_DIAGRAMMER_SEQ_RULES,
+} from "../../shared/mermaid-rules.js";
 import { resolveLlmSettings, type LlmSettings } from "./llmConfig.js";
 import { Sandbox } from "./tools.js";
 import type { RunResult } from "./models.js";
@@ -114,12 +119,7 @@ function buildNodeHandlers(sandbox: Sandbox, llm: ChatOpenAI) {
     const knowledge = sandbox.searchKnowledge(`${state.request} api design`);
     const design = await call(
       llm,
-      SPANISH_SYSTEM +
-        " Eres el Designer/Architect. Produce design.md en markdown con: componentes, " +
-        "APIs, modelo de datos, trade-offs y un diagrama de componentes. OBLIGATORIO: el " +
-        "diagrama debe ir en un fence ```mermaid con flowchart TD o flowchart LR. " +
-        "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). PROHIBIDO: diagramas ASCII/textual, " +
-        "sequenceDiagram, classDiagram.",
+      SPANISH_SYSTEM + MERMAID_DESIGNER_RULES,
       `Request:\n${state.request}\n\nPlan:\n${state.plan}\n\nKnowledge:\n${knowledge}`,
     );
     sandbox.writeFile("design.md", design);
@@ -129,18 +129,13 @@ function buildNodeHandlers(sandbox: Sandbox, llm: ChatOpenAI) {
   const diagrammer = async (state: GraphState) => {
     const arch = await call(
       llm,
-      SPANISH_SYSTEM +
-        " Eres el Diagrammer. Genera SOLO código Mermaid válido para un diagrama de arquitectura " +
-        "(debe empezar con flowchart TD, flowchart LR o graph TD). Sin markdown ni explicaciones.",
+      SPANISH_SYSTEM + MERMAID_DIAGRAMMER_ARCH_RULES,
       `Request:\n${state.request}\n\nPlan:\n${state.plan}\n\nDesign:\n${state.design}`,
     );
     sandbox.writeMermaid("architecture.mmd", stripMermaidFences(arch));
     const seq = await call(
       llm,
-      SPANISH_SYSTEM +
-        " Eres el Diagrammer. Genera SOLO código Mermaid válido para un flujo temporal " +
-        "(pasos / secuencia de interacción) usando 'flowchart LR' o 'flowchart TD'. " +
-        "NO uses sequenceDiagram ni classDiagram. Sin markdown ni explicaciones.",
+      SPANISH_SYSTEM + MERMAID_DIAGRAMMER_SEQ_RULES,
       `Request:\n${state.request}\n\nPlan:\n${state.plan}\n\nDesign:\n${state.design}`,
     );
     sandbox.writeMermaid("sequence.mmd", stripMermaidFences(seq));

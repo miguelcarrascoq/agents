@@ -6,6 +6,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
+import {
+  MERMAID_DESIGNER_RULES,
+  MERMAID_DIAGRAMMER_ARCH_RULES,
+  MERMAID_DIAGRAMMER_SEQ_RULES,
+} from "../../shared/mermaid-rules.js";
 import { resolveLlmSettings } from "./llmConfig.js";
 import { Sandbox } from "./tools.js";
 import type { RunResult } from "./models.js";
@@ -128,13 +133,13 @@ function buildPhaseRunners(
   });
   const designer = new Agent({
     name: "Designer",
-    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). OBLIGATORIO: diagrama en fence \`\`\`mermaid con flowchart TD/LR. Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram.`,
+    instructions: `${SPANISH} Eres el Designer. Escribe design.md con write_file (componentes, APIs, datos). ${MERMAID_DESIGNER_RULES}`,
     model,
     tools,
   });
   const diagrammer = new Agent({
     name: "Diagrammer",
-    instructions: `${SPANISH} Eres el Diagrammer. Usa write_mermaid para diagrams/architecture.mmd y diagrams/sequence.mmd. REGLA: cada archivo debe empezar con 'flowchart TD' o 'flowchart LR' (o 'graph TD'). NO uses sequenceDiagram ni classDiagram. sequence.mmd = flujo temporal con flowchart; architecture.mmd = componentes.`,
+    instructions: `${SPANISH} Eres el Diagrammer. Usa write_mermaid para diagrams/architecture.mmd y diagrams/sequence.mmd. architecture.mmd: ${MERMAID_DIAGRAMMER_ARCH_RULES} sequence.mmd: ${MERMAID_DIAGRAMMER_SEQ_RULES}`,
     model,
     tools,
   });

@@ -1,69 +1,48 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import mermaid from "mermaid";
+import { sanitizeMermaidSource } from "./mermaidSanitize";
 
 let mermaidReady = false;
 let renderSeq = 0;
+let renderChain: Promise<unknown> = Promise.resolve();
 
 function ensureMermaid(): void {
   if (mermaidReady) return;
   mermaid.initialize({
     startOnLoad: false,
-    securityLevel: "strict",
+    securityLevel: "loose",
   });
   mermaidReady = true;
-}
-
-/** Replace commas inside a single pair of shape delimiters. */
-function neutralizeCommasInShapes(src: string): string {
-  return src
-    .replace(/\[([^\]]*)]/g, (_, inner: string) => `[${inner.replace(/,/g, " /")}]`)
-    .replace(/\(([^)]*)\)/g, (_, inner: string) => `(${inner.replace(/,/g, " /")})`)
-    .replace(/\{([^}]*)}/g, (_, inner: string) => `{${inner.replace(/,/g, " /")}}`);
-}
-
-/** Colons in unquoted edge labels break the flowchart lexer (e.g. M:N). */
-function neutralizeColonsInEdgeLabels(src: string): string {
-  return src
-    .replace(/--\s*([^>\n]*?)\s*-->/g, (_, label: string) => `-- ${label.replace(/:/g, "-").trim()} -->`)
-    .replace(/\|([^|\n]+)\|/g, (_, label: string) => `|${label.replace(/:/g, "-")}|`);
-}
-
-/** Fix common LLM Mermaid mistakes that break the parser (strict mode). */
-export function sanitizeMermaidSource(text: string): string {
-  let src = text
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/<\/?[a-zA-Z][^>]*>/g, "")
-    // Double quotes inside labels/edges → single quotes (parser error otherwise).
-    .replace(/"/g, "'")
-    .replace(/[ \t]+\n/g, "\n")
-    .trim();
-  src = neutralizeCommasInShapes(src);
-  src = neutralizeColonsInEdgeLabels(src);
-  return src;
 }
 
 type Props = {
   html: string;
 };
 
-async function paintMermaid(root: HTMLElement, signal: { cancelled: boolean }) {
+async function renderDiagram(id: string, source: string): Promise<string> {
+  const { svg } = await mermaid.render(id, source);
+  return svg;
+}
+
+async function paintMermaid(root: HTMLElement, generation: number, myGen: { value: number }) {
   ensureMermaid();
   const nodes = root.querySelectorAll<HTMLElement>(".mermaid");
   for (const node of nodes) {
-    if (signal.cancelled) return;
+    if (myGen.value !== generation) return;
     if (node.querySelector("svg")) continue;
 
     const raw = sanitizeMermaidSource(node.textContent ?? "");
     if (!raw) continue;
 
+    const id = `mmd-${++renderSeq}`;
     try {
-      const id = `mmd-${++renderSeq}`;
-      const { svg } = await mermaid.render(id, raw);
-      if (signal.cancelled) return;
+      const task = async () => renderDiagram(id, raw);
+      const svg = await (renderChain = renderChain.then(task, task));
+      if (myGen.value !== generation) return;
       node.innerHTML = svg;
+      delete node.dataset.mermaidError;
     } catch {
-      if (signal.cancelled) return;
-      // Keep source readable if parse fails (div whitespace would otherwise collapse).
+      if (myGen.value !== generation) return;
       node.textContent = raw;
       node.dataset.mermaidError = "1";
     }
@@ -73,32 +52,41 @@ async function paintMermaid(root: HTMLElement, signal: { cancelled: boolean }) {
 /** Renders markdown HTML and paints Mermaid diagrams as SVG. */
 export function MarkdownArtifact({ html }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const htmlRef = useRef("");
+  const generationRef = useRef(0);
+
+  // Only write innerHTML when markdown changes. Using dangerouslySetInnerHTML on
+  // every parent re-render would wipe imperative Mermaid SVG updates.
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!root || htmlRef.current === html) return;
+    root.innerHTML = html;
+    htmlRef.current = html;
+  }, [html]);
 
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
 
-    const signal = { cancelled: false };
-    void paintMermaid(root, signal);
+    const myGen = { value: ++generationRef.current };
+    const generation = myGen.value;
+    void paintMermaid(root, generation, myGen);
 
     const details = root.closest("details");
     const onToggle = () => {
       if (!details?.open) return;
-      void paintMermaid(root, signal);
+      void paintMermaid(root, generation, myGen);
     };
     details?.addEventListener("toggle", onToggle);
 
     return () => {
-      signal.cancelled = true;
+      myGen.value = -1;
       details?.removeEventListener("toggle", onToggle);
     };
   }, [html]);
 
-  return (
-    <div
-      ref={ref}
-      className="md"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
+  return <div ref={ref} className="md" />;
 }
+
+// Re-export for tests or tooling that import from this module.
+export { sanitizeMermaidSource, sanitizeMermaidInMarkdown } from "./mermaidSanitize";

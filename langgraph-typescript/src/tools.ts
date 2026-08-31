@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { search } from "duck-duck-scrape";
+import { sanitizeMermaidInMarkdown, sanitizeMermaidSource } from "../../shared/mermaid-sanitize.js";
 
 export class Sandbox {
   constructor(
@@ -25,6 +26,9 @@ export class Sandbox {
   }
 
   writeFile(rel: string, content: string): string {
+    if (content.includes("```mermaid")) {
+      content = sanitizeMermaidInMarkdown(content);
+    }
     const target = this.safePath(rel);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, content, "utf8");
@@ -103,6 +107,7 @@ export class Sandbox {
     if (body.startsWith("```")) {
       body = body.replace(/^```(?:mermaid)?\s*/, "").replace(/\s*```$/, "");
     }
+    body = sanitizeMermaidSource(body);
     return this.writeFile(cleaned, body + "\n");
   }
 

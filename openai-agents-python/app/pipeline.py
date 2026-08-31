@@ -14,6 +14,11 @@ from agents import (
     function_tool,
     set_tracing_disabled,
 )
+from feature_delivery_api.mermaid import (
+    MERMAID_DESIGNER_RULES,
+    MERMAID_DIAGRAMMER_ARCH_RULES,
+    MERMAID_DIAGRAMMER_SEQ_RULES,
+)
 
 from app.llm_config import resolve_llm_settings
 from app.models import RunResult
@@ -148,9 +153,7 @@ async def _run_async(
             name="Designer",
             instructions=(
                 f"{SPANISH} Eres el Designer. Escribe design.md (componentes, APIs, datos). "
-                "OBLIGATORIO: diagrama de componentes en fence ```mermaid con flowchart TD/LR. "
-                "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
-                "PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram."
+                f"{MERMAID_DESIGNER_RULES}"
             ),
             model=model_obj,
             tools=tools,
@@ -160,9 +163,8 @@ async def _run_async(
             instructions=(
                 f"{SPANISH} Eres el Diagrammer. Usa write_mermaid para "
                 "diagrams/architecture.mmd y diagrams/sequence.mmd. "
-                "REGLA: cada archivo debe empezar con 'flowchart TD' o 'flowchart LR' (o 'graph TD'). "
-                "NO uses sequenceDiagram ni classDiagram. "
-                "sequence.mmd = flujo temporal con flowchart; architecture.mmd = componentes."
+                f"architecture.mmd: {MERMAID_DIAGRAMMER_ARCH_RULES} "
+                f"sequence.mmd: {MERMAID_DIAGRAMMER_SEQ_RULES}"
             ),
             model=model_obj,
             tools=tools,
@@ -209,8 +211,7 @@ async def _run_async(
             "designer": f"Feature request:\n{request}\n\nPlan:\n{plan}\n\nEscribe design.md.",
             "diagrammer": (
                 f"Feature request:\n{request}\n\nPlan:\n{plan}\n\nDesign:\n{design}\n\n"
-                "Crea diagrams/architecture.mmd y diagrams/sequence.mmd con write_mermaid. "
-                "Usa solo flowchart TD/LR o graph TD (nunca sequenceDiagram)."
+                "Crea diagrams/architecture.mmd y diagrams/sequence.mmd con write_mermaid.",
             ),
             "illustrator": (
                 f"Request:\n{request}\n\nResearch:\n{research}\n\nDesign:\n{design}\n\n"

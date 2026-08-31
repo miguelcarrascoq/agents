@@ -10,6 +10,11 @@ from typing import Literal, TypedDict
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 
+from feature_delivery_api.mermaid import (
+    MERMAID_DESIGNER_RULES,
+    MERMAID_DIAGRAMMER_ARCH_RULES,
+    MERMAID_DIAGRAMMER_SEQ_RULES,
+)
 from app.llm_config import build_chat_openai, resolve_llm_settings
 from app.models import RunResult
 from app.phase_log import (
@@ -189,13 +194,7 @@ def build_node_handlers(sandbox: Sandbox, provider: str | None = None, model: st
         knowledge = sandbox.search_knowledge(state["request"] + " api design")
         design = _call(
             llm,
-            SPANISH_SYSTEM
-            + " Eres el Designer/Architect. Produce design.md en markdown con: "
-            "componentes, APIs (endpoints), modelo de datos, trade-offs y un diagrama de "
-            "componentes. OBLIGATORIO: el diagrama debe ir en un fence ```mermaid con "
-            "flowchart TD o flowchart LR. Etiquetas de nodos en texto plano corto "
-            "(sin HTML ni <br>; sin comillas dobles en etiquetas). PROHIBIDO: diagramas "
-            "ASCII/textual, sequenceDiagram, classDiagram.",
+            SPANISH_SYSTEM + MERMAID_DESIGNER_RULES,
             f"Request:\n{state['request']}\n\nPlan:\n{state['plan']}\n\nKnowledge:\n{knowledge}",
         )
         sandbox.write_file("design.md", design)
@@ -204,18 +203,13 @@ def build_node_handlers(sandbox: Sandbox, provider: str | None = None, model: st
     def diagrammer(state: GraphState) -> dict:
         arch = _call(
             llm,
-            SPANISH_SYSTEM
-            + " Eres el Diagrammer. Genera SOLO código Mermaid válido para un diagrama de arquitectura "
-            "(debe empezar con flowchart TD, flowchart LR o graph TD). Sin markdown ni explicaciones.",
+            SPANISH_SYSTEM + MERMAID_DIAGRAMMER_ARCH_RULES,
             f"Request:\n{state['request']}\n\nPlan:\n{state['plan']}\n\nDesign:\n{state['design']}",
         )
         sandbox.write_mermaid("architecture.mmd", _strip_mermaid_fences(arch))
         seq = _call(
             llm,
-            SPANISH_SYSTEM
-            + " Eres el Diagrammer. Genera SOLO código Mermaid válido para un flujo temporal "
-            "(pasos / secuencia de interacción) usando 'flowchart LR' o 'flowchart TD'. "
-            "NO uses sequenceDiagram ni classDiagram. Sin markdown ni explicaciones.",
+            SPANISH_SYSTEM + MERMAID_DIAGRAMMER_SEQ_RULES,
             f"Request:\n{state['request']}\n\nPlan:\n{state['plan']}\n\nDesign:\n{state['design']}",
         )
         sandbox.write_mermaid("sequence.mmd", _strip_mermaid_fences(seq))

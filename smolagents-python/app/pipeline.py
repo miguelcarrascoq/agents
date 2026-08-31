@@ -7,6 +7,11 @@ from pathlib import Path
 
 from smolagents import LiteLLMModel, LogLevel, Tool, ToolCallingAgent
 
+from feature_delivery_api.mermaid import (
+    MERMAID_DESIGNER_RULES,
+    MERMAID_DIAGRAMMER_ARCH_RULES,
+    MERMAID_DIAGRAMMER_SEQ_RULES,
+)
 from app.llm_config import resolve_llm_settings
 from app.models import RunResult
 from app.phase_log import (
@@ -209,17 +214,13 @@ def _phase_prompts(request: str, plan: str, design: str, research: str) -> dict[
         ),
         "designer": (
             f"{SPANISH}\nEres el Designer.\nFeature: {request}\nPlan:\n{plan}\n"
-            "Escribe design.md con write_file (componentes, APIs, datos, trade-offs). "
-            "OBLIGATORIO: diagrama en fence ```mermaid con flowchart TD/LR. "
-            "Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
-            "PROHIBIDO: ASCII/textual, sequenceDiagram, classDiagram."
+            f"Escribe design.md con write_file (componentes, APIs, datos, trade-offs). {MERMAID_DESIGNER_RULES}"
         ),
         "diagrammer": (
             f"{SPANISH}\nEres el Diagrammer.\nFeature: {request}\nPlan:\n{plan}\nDesign:\n{design}\n"
             "Usa write_mermaid para diagrams/architecture.mmd y diagrams/sequence.mmd.\n"
-            "REGLA: cada archivo debe empezar con 'flowchart TD' o 'flowchart LR' (o 'graph TD'). "
-            "NO uses sequenceDiagram, classDiagram ni pie — el preview de Cursor no los soporta. "
-            "sequence.mmd = flujo temporal de pasos con flowchart; architecture.mmd = componentes."
+            f"architecture.mmd: {MERMAID_DIAGRAMMER_ARCH_RULES} "
+            f"sequence.mmd: {MERMAID_DIAGRAMMER_SEQ_RULES}"
         ),
         "illustrator": (
             f"{SPANISH}\nEres el Illustrator.\nRequest: {request}\n"

@@ -7,6 +7,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from feature_delivery_api.mermaid import (
+    MERMAID_DESIGNER_RULES,
+    MERMAID_DIAGRAMMER_ARCH_RULES,
+    MERMAID_DIAGRAMMER_SEQ_RULES,
+)
+
 SPANISH_BASE = (
     "Eres parte de un equipo de ingeniería de software. "
     "Responde siempre en español. Los identificadores de código pueden estar en inglés. "
@@ -46,12 +52,7 @@ AGENT_CONFIGS: dict[str, dict[str, Any]] = {
         "display_name": "Feature Delivery — Designer",
         "description": "Produce design.md from plan and knowledge.",
         "system_prompt": (
-            SPANISH_BASE
-            + " Eres el Designer/Architect. Produce design.md en markdown con: "
-            "componentes, APIs (endpoints), modelo de datos, trade-offs y un diagrama de "
-            "componentes. OBLIGATORIO: el diagrama debe ir en un fence ```mermaid con "
-            "flowchart TD o flowchart LR. Etiquetas en texto plano (sin HTML ni <br>; sin comillas dobles). "
-            "PROHIBIDO: diagramas ASCII/textual, sequenceDiagram, classDiagram."
+            SPANISH_BASE + MERMAID_DESIGNER_RULES
         ),
         "include_web_search": False,
     },
@@ -60,8 +61,7 @@ AGENT_CONFIGS: dict[str, dict[str, Any]] = {
         "description": "Create Mermaid architecture and sequence diagrams.",
         "system_prompt": (
             SPANISH_BASE
-            + " Eres el Diagrammer. Genera dos diagramas Mermaid válidos: "
-            "1) arquitectura (flowchart TD/LR) 2) secuencia (flowchart LR/TD, NO sequenceDiagram)."
+            + f" {MERMAID_DIAGRAMMER_ARCH_RULES} {MERMAID_DIAGRAMMER_SEQ_RULES}"
         ),
         "include_web_search": False,
     },

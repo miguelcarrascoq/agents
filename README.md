@@ -4,6 +4,15 @@ Monorepo con **8 labs** que implementan el mismo pipeline multi-agente de desarr
 
 **Patrón recomendado** para agentes independientes o encadenados: **LangGraph** ([langgraph-python](langgraph-python/), o [langgraph-typescript](langgraph-typescript/) en Node) más el **contrato de artefactos** compartido. Detalle, ranking y cuándo usar cada lab: [COMPARISON.md](COMPARISON.md#recommended-pattern).
 
+## Video de uso
+
+<div align="center">
+  <a href="https://youtu.be/oRJchqSC3KI">
+    <img src="https://img.youtube.com/vi/oRJchqSC3KI/maxresdefault.jpg" alt="Video de uso del pipeline multi-agente" width="720">
+  </a>
+  <p><em>Clic para ver el video en YouTube</em></p>
+</div>
+
 ## Layout
 
 | Ruta | Rol |
